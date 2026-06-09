@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated code (regenerated via `make codegen` / build_runner in CI)
+*.g.dart
+*.freezed.dart
+lib/gen/
+
+# Generated localizations (run via `flutter gen-l10n`)
+lib/l10n/gen/
+
+# Firebase config (provided per-flavor out of band)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist

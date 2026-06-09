@@ -56,8 +56,9 @@ dependencies:
   sqlite3_flutter_libs: ^0.6.0+eol
   path_provider: ^2.1.5
   path: ^1.9.1
-  razorpay_flutter: ^1.4.5
-
+  # razorpay_flutter is added in D5 (payments). Deferred from Sprint 0:
+  # v1.4.5 bundles two modules sharing the com.razorpay namespace, which
+  # breaks manifest merge on this AGP. Not exercised until D5.
 dev_dependencies:
   flutter_test:
     sdk: flutter

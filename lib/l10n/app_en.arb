@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "Driver",
+  "@appTitle": {
+    "description": "The application name shown in the app bar."
+  },
+  "placeholderTitle": "Scaffold ready",
+  "@placeholderTitle": {
+    "description": "Sprint-0 placeholder home screen heading."
+  }
+}

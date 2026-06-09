@@ -1,0 +1,17 @@
+# Config for `make models` (dart run swagger_parser).
+# Consumes the backend OpenAPI/Swagger spec and emits dio + json_serializable
+# DTOs into lib/gen (gitignored — regenerate per backend change).
+#
+# Swap `schema_path` for the live spec URL when wiring against the real API:
+#   schema_url: https://api.dev.driverapp.example.com/openapi.json
+swagger_parser:
+  schema_path: api/openapi.yaml
+  output_directory: lib/gen
+  language: dart
+  json_serializer: json_serializable
+  root_client: false        # we own the dio client (core/network); only DTOs.
+  enums_to_json: true
+  unknown_enum_value: true
+  use_freezed: false
+  put_clients_in_folder: true
+  squash_clients: false

@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: Driver App API
+  version: 0.0.0
+  description: >
+    Placeholder spec for Sprint 0 so `make models` generates cleanly. Replace
+    with the real backend Swagger (or point swagger_parser.yaml at the live
+    /openapi.json) before D1. Each sprint consumes the endpoints listed in
+    docs/DRIVER_APP_SPRINT_PLAN.md.
+servers:
+  - url: https://api.dev.driverapp.example.com
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Liveness probe.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+        time:
+          type: string
+          format: date-time

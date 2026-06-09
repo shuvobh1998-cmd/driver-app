@@ -56,6 +56,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.6.0+eol
   path_provider: ^2.1.5
   path: ^1.9.1
+  retrofit: ^4.9.2
   # razorpay_flutter is added in D5 (payments). Deferred from Sprint 0:
   # v1.4.5 bundles two modules sharing the com.razorpay namespace, which
   # breaks manifest merge on this AGP. Not exercised until D5.
@@ -73,6 +74,8 @@ dev_dependencies:
   drift_dev: ^2.33.0
   # Test doubles for critical-path widget/integration tests.
   mocktail: ^1.0.5
+  swagger_parser: ^1.43.1
+  retrofit_generator: ^10.2.6
 
 # Generate the localizations delegate from the .arb files in lib/l10n.
 flutter:

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Pre-commit hook: format check + static analysis on staged Dart.
+# Enable once per clone:  git config core.hooksPath .githooks
+set -euo pipefail
+
+# Collect staged Dart files, skipping generated output.
+mapfile -t files < <(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '\.dart$' \
+  | grep -vE '(\.g\.dart$|\.freezed\.dart$|^lib/gen/|^lib/l10n/gen/)' || true)
+
+if [ ${#files[@]} -eq 0 ]; then
+  exit 0
+fi
+
+echo "pre-commit: checking formatting…"
+if ! dart format --output=none --set-exit-if-changed "${files[@]}"; then
+  echo "✗ Unformatted files. Run: dart format ${files[*]}" >&2
+  exit 1
+fi
+
+echo "pre-commit: analyzing…"
+if ! flutter analyze "${files[@]}"; then
+  echo "✗ Analyzer found issues. Fix them before committing." >&2
+  exit 1
+fi
+
+echo "✓ pre-commit passed"

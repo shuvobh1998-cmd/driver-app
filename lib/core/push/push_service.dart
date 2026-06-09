@@ -11,8 +11,8 @@ class PushService {
   PushService({
     FirebaseMessaging? messaging,
     FlutterLocalNotificationsPlugin? local,
-  })  : _messaging = messaging ?? FirebaseMessaging.instance,
-        _local = local ?? FlutterLocalNotificationsPlugin();
+  }) : _messaging = messaging ?? FirebaseMessaging.instance,
+       _local = local ?? FlutterLocalNotificationsPlugin();
 
   final FirebaseMessaging _messaging;
   final FlutterLocalNotificationsPlugin _local;
@@ -21,12 +21,12 @@ class PushService {
   /// even when the app is backgrounded or killed.
   static const AndroidNotificationChannel tripOfferChannel =
       AndroidNotificationChannel(
-    'trip_offers',
-    'Trip offers',
-    description: 'Full-screen incoming trip offers',
-    importance: Importance.max,
-    playSound: true,
-  );
+        'trip_offers',
+        'Trip offers',
+        description: 'Full-screen incoming trip offers',
+        importance: Importance.max,
+        playSound: true,
+      );
 
   /// Requests notification permission, ensures the full-screen channel exists,
   /// and returns the FCM token.
@@ -34,7 +34,8 @@ class PushService {
     await _messaging.requestPermission();
     await _local
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(tripOfferChannel);
     return _messaging.getToken();
   }

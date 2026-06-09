@@ -27,8 +27,7 @@ class ErrorInterceptor extends Interceptor {
     final transportCode = switch (err.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout =>
-        'TIMEOUT',
+      DioExceptionType.receiveTimeout => 'TIMEOUT',
       DioExceptionType.connectionError => 'NETWORK',
       _ => null,
     };

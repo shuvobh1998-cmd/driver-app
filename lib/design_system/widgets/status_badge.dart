@@ -10,7 +10,11 @@ enum StatusTone { neutral, success, warning, danger, info }
 /// A pill that communicates state with color + icon + label together
 /// (KYC status, trip state, online/offline, payout status, …).
 class StatusBadge extends StatelessWidget {
-  const StatusBadge({super.key, required this.label, this.tone = StatusTone.neutral});
+  const StatusBadge({
+    super.key,
+    required this.label,
+    this.tone = StatusTone.neutral,
+  });
 
   final String label;
   final StatusTone tone;
@@ -22,7 +26,10 @@ class StatusBadge extends StatelessWidget {
       StatusTone.warning => (AppColors.warning, Icons.schedule),
       StatusTone.danger => (AppColors.danger, Icons.error),
       StatusTone.info => (AppColors.info, Icons.info),
-      StatusTone.neutral => (Theme.of(context).colorScheme.outline, Icons.circle),
+      StatusTone.neutral => (
+        Theme.of(context).colorScheme.outline,
+        Icons.circle,
+      ),
     };
 
     return Container(
@@ -42,7 +49,9 @@ class StatusBadge extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: color),
           ),
         ],
       ),

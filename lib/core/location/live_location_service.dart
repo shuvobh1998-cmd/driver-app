@@ -24,11 +24,11 @@ class LiveLocationService {
 
   /// Position updates at roughly [pingInterval] cadence.
   Stream<Position> watch() => Geolocator.getPositionStream(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 10,
-        ),
-      );
+    locationSettings: const LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    ),
+  );
 
   // TODO(D3): start()/stop() tied to DriverStateController; foreground
   // service notification; offline queue + flush on reconnect.

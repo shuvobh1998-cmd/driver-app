@@ -44,17 +44,17 @@ class AppConfig {
 
   /// (apiBaseUrl, wsBaseUrl) fallbacks per flavor. Replace with real hosts.
   static (String, String) _defaultsFor(AppFlavor flavor) => switch (flavor) {
-        AppFlavor.dev => (
-            'https://api.dev.driverapp.example.com',
-            'https://ws.dev.driverapp.example.com',
-          ),
-        AppFlavor.staging => (
-            'https://api.staging.driverapp.example.com',
-            'https://ws.staging.driverapp.example.com',
-          ),
-        AppFlavor.prod => (
-            'https://api.driverapp.example.com',
-            'https://ws.driverapp.example.com',
-          ),
-      };
+    AppFlavor.dev => (
+      'https://api.dev.driverapp.example.com',
+      'https://ws.dev.driverapp.example.com',
+    ),
+    AppFlavor.staging => (
+      'https://api.staging.driverapp.example.com',
+      'https://ws.staging.driverapp.example.com',
+    ),
+    AppFlavor.prod => (
+      'https://api.driverapp.example.com',
+      'https://ws.driverapp.example.com',
+    ),
+  };
 }

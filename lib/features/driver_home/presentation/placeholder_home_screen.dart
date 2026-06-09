@@ -31,8 +31,10 @@ class PlaceholderHomeScreen extends ConsumerWidget {
           children: [
             const Icon(Icons.local_taxi, size: 72, color: AppColors.brand),
             const SizedBox(height: AppSpacing.md),
-            Text(l10n.placeholderTitle,
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              l10n.placeholderTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               config.apiBaseUrl,
@@ -46,8 +48,8 @@ class PlaceholderHomeScreen extends ConsumerWidget {
   }
 
   String _flavorLabel(AppFlavor flavor) => switch (flavor) {
-        AppFlavor.dev => 'DEV',
-        AppFlavor.staging => 'STAGING',
-        AppFlavor.prod => 'PROD',
-      };
+    AppFlavor.dev => 'DEV',
+    AppFlavor.staging => 'STAGING',
+    AppFlavor.prod => 'PROD',
+  };
 }

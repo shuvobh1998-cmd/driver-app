@@ -19,6 +19,8 @@ l10n: ## Generate the AppLocalizations delegate from lib/l10n/*.arb.
 codegen: models ## Run every generator: models -> build_runner -> l10n.
 	dart run build_runner build --delete-conflicting-outputs
 	$(MAKE) l10n
+	# Normalize generated output so the format check stays clean.
+	dart format lib/gen lib/l10n/gen
 
 watch: ## Re-run build_runner on change.
 	dart run build_runner watch --delete-conflicting-outputs

@@ -29,6 +29,7 @@ jobs:
           dart run swagger_parser
           dart run build_runner build --delete-conflicting-outputs
           flutter gen-l10n
+          dart format lib/gen lib/l10n/gen
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed lib test
@@ -65,6 +66,7 @@ jobs:
           dart run swagger_parser
           dart run build_runner build --delete-conflicting-outputs
           flutter gen-l10n
+          dart format lib/gen lib/l10n/gen
 
       - name: Build dev debug APK
         run: flutter build apk --debug --flavor dev -t lib/main_dev.dart

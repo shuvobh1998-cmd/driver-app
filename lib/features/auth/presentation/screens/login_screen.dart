@@ -81,7 +81,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               prefixIcon: Icons.lock,
               obscureText: _obscure,
               keyboardType: TextInputType.number,
-              validator: Validators.pin6,
+              // Login only checks the field is present — the backend is the
+              // authority on the password. (Setting a password still enforces
+              // the 6-digit PIN rule in signup/reset.)
+              validator: (v) => Validators.required(v, field: 'Password'),
               suffix: IconButton(
                 icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
                 onPressed: () => setState(() => _obscure = !_obscure),

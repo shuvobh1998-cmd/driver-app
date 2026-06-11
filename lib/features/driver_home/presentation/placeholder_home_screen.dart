@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/router/app_router.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/config/config_providers.dart';
 import '../../../design_system/design_system.dart';
@@ -26,6 +28,11 @@ class PlaceholderHomeScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: AppSpacing.sm),
           child: Center(child: StatusBadge(label: _flavorLabel(config.flavor))),
+        ),
+        IconButton(
+          tooltip: 'Profile',
+          icon: const Icon(Icons.person),
+          onPressed: () => context.push(Routes.profile),
         ),
         IconButton(
           tooltip: 'Log out',

@@ -110,6 +110,14 @@ class AuthController extends Notifier<AuthState> {
     if (state.isAuthenticated) state = AuthState.authenticated(user);
   }
 
+  /// Re-fetches the signed-in user from `/auth/me` (e.g. after a profile or
+  /// avatar change) so cached UI like the home greeting stays in sync.
+  Future<void> refreshUser() async {
+    if (!state.isAuthenticated) return;
+    final user = await _repo.me();
+    state = AuthState.authenticated(user);
+  }
+
   Future<void> logout() async {
     await _repo.logout();
     state = const AuthState.unauthenticated();

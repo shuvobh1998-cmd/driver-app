@@ -4,11 +4,18 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Firebase (phone auth) is configured per-flavor out of band: google-services.json
-// is gitignored. Apply the Google Services plugin only when the file is present,
-// so local dev builds get Firebase while CI (no file) still builds — there the
-// app falls back to the gated phone verifier at runtime.
-if (file("google-services.json").exists()) {
+// Firebase (phone auth) is configured per-flavor, out of band: google-services.json
+// is gitignored and only the `dev` flavor's package is registered. Apply the
+// Google Services plugin ONLY for dev builds (and only when the file is present),
+// so:
+//   - `dev` builds wire Firebase,
+//   - `staging`/`prod` builds (package names not in the json) still succeed and
+//     fall back to the gated phone verifier at runtime,
+//   - CI without the file still builds.
+val isDevFlavorBuild = gradle.startParameter.taskNames.any {
+    it.contains("Dev", ignoreCase = true)
+}
+if (isDevFlavorBuild && file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
 

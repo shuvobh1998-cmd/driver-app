@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 
-/// Attaches the in-memory access token to outgoing requests.
-///
-/// Skeleton: the token source wires in with `AuthController` in D1. For now it
-/// is a no-op placeholder so the client assembles cleanly.
+/// Attaches the in-memory access token to outgoing requests. The token source
+/// is the shared `AuthTokenService`, read fresh on every request so a just-
+/// refreshed token is picked up automatically on a retry.
 class AuthInterceptor extends Interceptor {
   AuthInterceptor(this._accessToken);
 

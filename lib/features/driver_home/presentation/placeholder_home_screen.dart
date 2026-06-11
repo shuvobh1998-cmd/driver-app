@@ -8,7 +8,6 @@ import '../../../core/config/config_providers.dart';
 import '../../../design_system/design_system.dart';
 import '../../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../../l10n/gen/app_localizations.dart';
-import '../../../shared/utils/failure_snackbar.dart';
 
 /// Sprint-0 landing screen. Exists only to prove the shell runs in every
 /// flavor with the design system + l10n wired in. The real driver home
@@ -30,20 +29,9 @@ class PlaceholderHomeScreen extends ConsumerWidget {
           child: Center(child: StatusBadge(label: _flavorLabel(config.flavor))),
         ),
         IconButton(
-          tooltip: 'Profile',
-          icon: const Icon(Icons.person),
-          onPressed: () => context.push(Routes.profile),
-        ),
-        IconButton(
-          tooltip: 'Log out',
-          icon: const Icon(Icons.logout),
-          onPressed: () async {
-            try {
-              await ref.read(authControllerProvider.notifier).logout();
-            } catch (e) {
-              if (context.mounted) context.showErrorSnack(e);
-            }
-          },
+          tooltip: 'Settings',
+          icon: const Icon(Icons.settings),
+          onPressed: () => context.push(Routes.settings),
         ),
       ],
       body: Center(

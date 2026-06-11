@@ -9,6 +9,8 @@ import '../../features/auth/presentation/screens/signup_flow_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/driver_home/presentation/placeholder_home_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
+import '../../features/settings/presentation/screens/sessions_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 
 /// Named route paths. Centralized so deep links (FCM) and the auth guard
 /// reference one source of truth as screens are added per sprint.
@@ -19,8 +21,8 @@ abstract final class Routes {
   static const forgot = '/forgot';
   static const home = '/';
   static const profile = '/profile';
-  // Added with its feature:
   static const settings = '/settings';
+  static const sessions = '/settings/sessions';
 
   /// Routes a signed-out user is allowed to sit on.
   static bool isAuthRoute(String location) =>
@@ -78,6 +80,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.profile,
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: Routes.settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.sessions,
+        builder: (context, state) => const SessionsScreen(),
       ),
     ],
   );

@@ -40,14 +40,15 @@ class ErrorInterceptor extends Interceptor {
 
     // Backend error envelope: { "error": { "code": "...", "message": "..." } }.
     final data = err.response?.data;
-    final code = (data is Map && data['error'] is Map)
-        ? (data['error']['code'] as String?) ?? AppFailure.unknownCode
-        : AppFailure.unknownCode;
+    final error = (data is Map && data['error'] is Map) ? data['error'] : null;
+    final code = (error?['code'] as String?) ?? AppFailure.unknownCode;
+    final serverMessage = error?['message'] as String?;
 
     return AppFailure(
       code: code,
-      message: errorMessageFor(code),
+      message: resolveErrorMessage(code, serverMessage),
       statusCode: err.response?.statusCode,
+      serverMessage: serverMessage,
     );
   }
 }

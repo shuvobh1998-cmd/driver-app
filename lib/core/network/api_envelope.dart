@@ -52,12 +52,13 @@ extension ApiEnvelope on Response<dynamic> {
 /// the code before the [ErrorInterceptor] has normalized the exception
 /// (e.g. inside the refresh single-flight, which runs on a bare Dio).
 AppFailure failureFromEnvelope(Object? body, {int? statusCode}) {
-  final code = (body is Map && body['error'] is Map)
-      ? (body['error']['code'] as String?) ?? AppFailure.unknownCode
-      : AppFailure.unknownCode;
+  final error = (body is Map && body['error'] is Map) ? body['error'] : null;
+  final code = (error?['code'] as String?) ?? AppFailure.unknownCode;
+  final serverMessage = error?['message'] as String?;
   return AppFailure(
     code: code,
-    message: errorMessageFor(code),
+    message: resolveErrorMessage(code, serverMessage),
     statusCode: statusCode,
+    serverMessage: serverMessage,
   );
 }

@@ -55,3 +55,15 @@ const Map<String, String> kErrorMessages = {
 /// generic message when the code is unmapped.
 String errorMessageFor(String code) =>
     kErrorMessages[code] ?? kErrorMessages['UNKNOWN']!;
+
+/// Resolves the best message to show for a backend failure: a locally-mapped
+/// message for the [code] if we have one, otherwise the backend's own
+/// [serverMessage] (usually meaningful), otherwise the generic fallback. This
+/// means an unmapped code never hides a useful server explanation.
+String resolveErrorMessage(String code, [String? serverMessage]) {
+  final mapped = kErrorMessages[code];
+  if (mapped != null) return mapped;
+  final server = serverMessage?.trim();
+  if (server != null && server.isNotEmpty) return server;
+  return kErrorMessages['UNKNOWN']!;
+}

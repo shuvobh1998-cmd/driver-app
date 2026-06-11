@@ -5,6 +5,7 @@ class AppFailure implements Exception {
     required this.code,
     required this.message,
     this.statusCode,
+    this.serverMessage,
   });
 
   /// Machine-readable code, e.g. `KYC_INCOMPLETE`, `OTP_INVALID`,
@@ -17,9 +18,14 @@ class AppFailure implements Exception {
   /// HTTP status, when the failure originated from a response.
   final int? statusCode;
 
+  /// The raw `error.message` from the backend, kept for diagnostics and as the
+  /// fallback shown when [code] has no entry in the local message map.
+  final String? serverMessage;
+
   /// Sentinel for failures we could not attribute to a known code.
   static const String unknownCode = 'UNKNOWN';
 
   @override
-  String toString() => 'AppFailure($code, status=$statusCode)';
+  String toString() =>
+      'AppFailure($code, status=$statusCode, server=$serverMessage)';
 }

@@ -4,6 +4,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase (phone auth) is configured per-flavor out of band: google-services.json
+// is gitignored. Apply the Google Services plugin only when the file is present,
+// so local dev builds get Firebase while CI (no file) still builds — there the
+// app falls back to the gated phone verifier at runtime.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.driverapp.driver_app"
     compileSdk = flutter.compileSdkVersion

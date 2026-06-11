@@ -16,21 +16,24 @@ Layers:
   failure (`core/network/auth_token_service.dart`).
 - Profile view/edit + avatar, settings shell (see `features/settings`).
 
-## ⚠️ Firebase OTP is gated
+## Firebase OTP (signup + forgot-password)
 Per the backend handoff, the OTP SMS is sent **client-side by Firebase**
-(`firebase_auth`), and the resulting Firebase ID token is forwarded to the
-backend. Signup and forgot-password depend on this step.
+(`firebase_auth`); the resulting Firebase ID token is forwarded to the backend.
+That step lives behind the `PhoneVerifier` interface (`data/phone_verifier.dart`).
 
-`firebase_auth` is **not yet in `pubspec.yaml`** and there is **no
-`google-services.json`**, so that step is abstracted behind
-`PhoneVerifier` (`data/phone_verifier.dart`). The default
-`UnconfiguredPhoneVerifier` fails cleanly with
-`PHONE_VERIFICATION_UNAVAILABLE`. The signup/forgot **UI is fully built and
-wired**; to enable them:
-1. Add `firebase_auth` to `pubspec.yaml` and a Firebase project +
-   `google-services.json` / `firebase_options.dart`.
-2. Implement `PhoneVerifier` with `firebase_auth` (`verifyPhoneNumber` →
-   `signInWithCredential` → `getIdToken()`).
-3. Override `phoneVerifierProvider` in the bootstrap.
+- **dev flavor:** wired. `firebase_auth` + `android/app/google-services.json`
+  (project `rideshare-dev-df265`, package `com.driverapp.driver_app.dev`) are
+  configured; `bootstrap` calls `Firebase.initializeApp()` and overrides
+  `phoneVerifierProvider` with `FirebasePhoneVerifier`. Use a **Firebase test
+  number** (Auth → Sign-in method → Phone → test numbers) to sign up without
+  real SMS.
+- **staging/prod:** not registered yet. `Firebase.initializeApp()` is
+  best-effort in bootstrap — those flavors fall back to
+  `UnconfiguredPhoneVerifier`, which fails cleanly with
+  `PHONE_VERIFICATION_UNAVAILABLE`. Register the staging/prod package names and
+  add their `google-services.json` to enable OTP there.
+
+Each developer/test device's **debug SHA-1** must be added to the Firebase
+Android app for phone auth to work on that machine.
 
 See `docs/DRIVER_APP_SPRINT_PLAN.md` and `others/mobile/AUTH_FLOWS.md`.

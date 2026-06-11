@@ -55,3 +55,6 @@ lib/l10n/gen/
 # Firebase config (provided per-flavor out of band)
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+
+# Local backend/reference docs — not part of the app repo
+/others/

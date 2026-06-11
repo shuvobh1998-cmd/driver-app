@@ -8,15 +8,26 @@ const Map<String, String> kErrorMessages = {
   'NETWORK': 'No internet connection. Check your network and retry.',
   'TIMEOUT': 'The request took too long. Please try again.',
   'TOKEN_EXPIRED': 'Your session expired. Please sign in again.',
+  'UNAUTHENTICATED': 'Please sign in to continue.',
   'UNAUTHORIZED': 'Please sign in to continue.',
+  'FORBIDDEN': "You don't have permission to do that.",
   'NOT_FOUND': 'We could not find what you were looking for.',
+  'DUPLICATE': 'That already exists.',
+  'INVALID_STATE': "That action isn't allowed right now.",
   'VALIDATION_ERROR': 'Please check the details and try again.',
   'RATE_LIMITED': 'Too many attempts. Please wait a moment and retry.',
+  'INTERNAL_ERROR': 'Something went wrong on our end. Please try again.',
+  'SERVICE_UNAVAILABLE':
+      'Service is temporarily unavailable. Try again shortly.',
   // Auth (D1):
   'INVALID_CREDENTIALS': 'Incorrect phone or password.',
   'USER_NOT_FOUND': 'No account found for this phone number.',
-  'PHONE_ALREADY_EXISTS': 'An account already exists for this phone number.',
+  'PHONE_ALREADY_REGISTERED':
+      'This number is already registered. Please log in instead.',
+  'PHONE_ALREADY_EXISTS':
+      'This number is already registered. Please log in instead.',
   'PHONE_NOT_REGISTERED': 'This phone number is not registered yet.',
+  'OTP_EXPIRED': 'That code has expired. Request a new one.',
   'SIGNUP_TOKEN_INVALID': 'Your signup session expired. Please start again.',
   'SIGNUP_TICKET_INVALID': 'Your signup session expired. Please start again.',
   'RESET_TICKET_INVALID': 'Your reset session expired. Please start again.',

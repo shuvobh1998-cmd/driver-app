@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../../shared/utils/image_pick.dart';
+import '../../../../shared/utils/phone.dart';
 import '../../../../shared/utils/validators.dart';
 import '../../../auth/data/models/gender.dart';
 import '../../../auth/data/models/user_profile.dart';
@@ -63,7 +64,9 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
     _last = TextEditingController(text: p.lastName ?? '');
     _email = TextEditingController(text: p.email ?? '');
     _emName = TextEditingController(text: p.emergencyContactName ?? '');
-    _emPhone = TextEditingController(text: p.emergencyContactPhone ?? '');
+    _emPhone = TextEditingController(
+      text: Phone.toNational(p.emergencyContactPhone),
+    );
     _gender = (p.gender == Gender.unknown) ? null : p.gender;
   }
 
@@ -90,7 +93,7 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
             : _emName.text.trim(),
         'emergencyContactPhone': _emPhone.text.trim().isEmpty
             ? null
-            : _emPhone.text.trim(),
+            : Phone.toE164(_emPhone.text.trim()),
       };
       await ref.read(userApiProvider).updateProfile(patch);
       ref.invalidate(userProfileProvider);
@@ -210,11 +213,9 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
             prefixIcon: Icons.contact_emergency,
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(
+          PhoneNumberField(
             controller: _emPhone,
             label: 'Contact phone',
-            prefixIcon: Icons.phone_in_talk,
-            keyboardType: TextInputType.phone,
             validator: _emergencyPhoneValidator,
           ),
           const SizedBox(height: AppSpacing.xl),

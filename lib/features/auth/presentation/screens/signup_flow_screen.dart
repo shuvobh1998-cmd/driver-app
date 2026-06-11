@@ -149,12 +149,9 @@ class _PhoneStepState extends State<_PhoneStep> {
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: AppSpacing.xl),
-          AppTextField(
+          PhoneNumberField(
             controller: _phone,
             label: 'Phone number',
-            hint: '10-digit mobile',
-            prefixIcon: Icons.phone,
-            keyboardType: TextInputType.phone,
             validator: Validators.phone,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -392,11 +389,9 @@ class _ProfileStepState extends State<_ProfileStep> {
             prefixIcon: Icons.contact_emergency,
           ),
           const SizedBox(height: AppSpacing.md),
-          AppTextField(
+          PhoneNumberField(
             controller: _emPhone,
             label: 'Contact phone',
-            prefixIcon: Icons.phone_in_talk,
-            keyboardType: TextInputType.phone,
             validator: _emergencyPhoneValidator,
           ),
           const SizedBox(height: AppSpacing.lg),

@@ -104,12 +104,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  AppTextField(
+                  PhoneNumberField(
                     controller: _phone,
                     label: 'Phone number',
-                    hint: '10-digit mobile',
-                    prefixIcon: Icons.phone,
-                    keyboardType: TextInputType.phone,
                     validator: Validators.phone,
                   ),
                   const SizedBox(height: AppSpacing.lg),

@@ -31,6 +31,14 @@ abstract final class Validators {
     return null;
   }
 
+  /// The account password is exactly 6 digits (matches the backend rule).
+  static String? pin6(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Password is required.';
+    if (!RegExp(r'^\d{6}$').hasMatch(v)) return 'Use a 6-digit numeric PIN.';
+    return null;
+  }
+
   static String? otp(String? value, {int length = 6}) {
     final v = value?.trim() ?? '';
     if (v.length != length || int.tryParse(v) == null) {

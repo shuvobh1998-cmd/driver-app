@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/config/config_providers.dart';
 import '../../../design_system/design_system.dart';
+import '../../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../../l10n/gen/app_localizations.dart';
+import '../../../shared/utils/failure_snackbar.dart';
 
 /// Sprint-0 landing screen. Exists only to prove the shell runs in every
 /// flavor with the design system + l10n wired in. The real driver home
@@ -16,13 +18,25 @@ class PlaceholderHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(appConfigProvider);
     final l10n = AppLocalizations.of(context);
+    final user = ref.watch(currentUserProvider);
 
     return AppScaffold(
       title: l10n.appTitle,
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: AppSpacing.md),
+          padding: const EdgeInsets.only(right: AppSpacing.sm),
           child: Center(child: StatusBadge(label: _flavorLabel(config.flavor))),
+        ),
+        IconButton(
+          tooltip: 'Log out',
+          icon: const Icon(Icons.logout),
+          onPressed: () async {
+            try {
+              await ref.read(authControllerProvider.notifier).logout();
+            } catch (e) {
+              if (context.mounted) context.showErrorSnack(e);
+            }
+          },
         ),
       ],
       body: Center(
@@ -32,12 +46,12 @@ class PlaceholderHomeScreen extends ConsumerWidget {
             const Icon(Icons.local_taxi, size: 72, color: AppColors.brand),
             const SizedBox(height: AppSpacing.md),
             Text(
-              l10n.placeholderTitle,
+              user == null ? l10n.placeholderTitle : 'Hi, ${user.displayName}',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              config.apiBaseUrl,
+              user?.phone ?? config.apiBaseUrl,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),

@@ -54,20 +54,18 @@ class DriverApi {
   }
 
   // ── KYC documents ─────────────────────────────────────────────────────────
-  /// Uploads (or replaces) a KYC document. Sends the file under the multipart
-  /// `file` field with the `docType` (and optional `docNumber`). [onProgress]
-  /// reports 0.0–1.0 while the bytes upload.
+  /// Uploads (or replaces) a KYC document. `docType` and the optional
+  /// `docNumber` / `expiresAt` are **query parameters**; the multipart body
+  /// carries only the `file`. [onProgress] reports 0.0–1.0 while bytes upload.
   Future<KycDocument> uploadDocument({
     required KycDocType docType,
     required String filePath,
     String? docNumber,
+    String? expiresAt,
     void Function(double progress)? onProgress,
     CancelToken? cancelToken,
   }) async {
     final form = FormData.fromMap({
-      'docType': docType.wireValue,
-      if (docNumber != null && docNumber.trim().isNotEmpty)
-        'docNumber': docNumber.trim(),
       'file': await MultipartFile.fromFile(
         filePath,
         filename: p.basename(filePath),
@@ -76,6 +74,13 @@ class DriverApi {
     final res = await _dio.post<dynamic>(
       '/drivers/me/kyc/documents',
       data: form,
+      queryParameters: {
+        'docType': docType.wireValue,
+        if (docNumber != null && docNumber.trim().isNotEmpty)
+          'docNumber': docNumber.trim(),
+        if (expiresAt != null && expiresAt.trim().isNotEmpty)
+          'expiresAt': expiresAt.trim(),
+      },
       cancelToken: cancelToken,
       onSendProgress: (sent, total) {
         if (total > 0) onProgress?.call(sent / total);

@@ -26,8 +26,10 @@ final driverSocketProvider = Provider<DriverSocket>((ref) {
   return socket;
 });
 
-final liveLocationServiceProvider = Provider<LiveLocationService>(
-  (ref) => LiveLocationService(),
-);
+final liveLocationServiceProvider = Provider<LiveLocationService>((ref) {
+  final service = LiveLocationService();
+  ref.onDispose(service.dispose);
+  return service;
+});
 
 final pushServiceProvider = Provider<PushService>((ref) => PushService());

@@ -7,7 +7,7 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_flow_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
-import '../../features/driver_home/presentation/placeholder_home_screen.dart';
+import '../../features/driver_home/presentation/screens/driver_home_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/approval_status_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/become_driver_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/kyc_documents_screen.dart';
@@ -85,7 +85,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: Routes.home,
-        builder: (context, state) => const PlaceholderHomeScreen(),
+        builder: (context, state) => const DriverHomeScreen(),
       ),
       GoRoute(
         path: Routes.profile,

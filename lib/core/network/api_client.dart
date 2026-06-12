@@ -21,7 +21,10 @@ class ApiClient {
       ..options.baseUrl = config.apiBaseUrl
       ..options.connectTimeout = const Duration(seconds: 15)
       ..options.receiveTimeout = const Duration(seconds: 20)
-      ..options.headers['Content-Type'] = 'application/json'
+      // No global Content-Type: Dio's ImplyContentTypeInterceptor sets it per
+      // request — application/json for map bodies, multipart/form-data for file
+      // uploads, and none for bodyless requests. A hard-coded application/json
+      // broke multipart uploads and bodyless POSTs (empty-body 400s).
       ..interceptors.addAll([
         AuthInterceptor(() => tokenService.accessToken),
         IdempotencyInterceptor(),

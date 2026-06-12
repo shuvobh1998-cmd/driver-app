@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/error/app_failure.dart';
-import '../../../../core/error/error_messages.dart';
+import '../../../../shared/utils/failure_snackbar.dart';
 import '../../data/models/onboarding_enums.dart';
 import '../../data/onboarding_providers.dart';
 
@@ -153,9 +152,7 @@ class KycUploadController extends Notifier<Map<KycDocType, DocUploadState>> {
         DocUploadState(
           phase: UploadPhase.error,
           draftPath: path,
-          errorMessage: e is AppFailure
-              ? e.message
-              : errorMessageFor(AppFailure.unknownCode),
+          errorMessage: messageForError(e),
         ),
       );
     }

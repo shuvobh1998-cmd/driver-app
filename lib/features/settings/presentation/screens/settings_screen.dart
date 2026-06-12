@@ -25,6 +25,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeControllerProvider);
     final currentLang = locale?.languageCode;
+    final isDriver = ref.watch(currentUserProvider)?.isDriver ?? false;
 
     return AppScaffold(
       title: 'Settings',
@@ -38,6 +39,19 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: const Text('Name, email, photo, emergency contact'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(Routes.profile),
+          ),
+          ListTile(
+            leading: const Icon(Icons.local_taxi),
+            title: Text(isDriver ? 'Driver onboarding' : 'Become a driver'),
+            subtitle: Text(
+              isDriver
+                  ? 'Documents, vehicle and approval status'
+                  : 'Submit your documents and start earning',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(
+              isDriver ? Routes.onboarding : Routes.becomeDriver,
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.devices),

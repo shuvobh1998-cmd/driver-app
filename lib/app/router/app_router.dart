@@ -8,6 +8,11 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_flow_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/driver_home/presentation/placeholder_home_screen.dart';
+import '../../features/onboarding_kyc/presentation/screens/approval_status_screen.dart';
+import '../../features/onboarding_kyc/presentation/screens/become_driver_screen.dart';
+import '../../features/onboarding_kyc/presentation/screens/kyc_documents_screen.dart';
+import '../../features/onboarding_kyc/presentation/screens/onboarding_checklist_screen.dart';
+import '../../features/onboarding_kyc/presentation/screens/vehicles_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/sessions_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -23,6 +28,11 @@ abstract final class Routes {
   static const profile = '/profile';
   static const settings = '/settings';
   static const sessions = '/settings/sessions';
+  static const becomeDriver = '/become-driver';
+  static const onboarding = '/onboarding';
+  static const kycDocuments = '/onboarding/documents';
+  static const vehicles = '/onboarding/vehicles';
+  static const approvalStatus = '/onboarding/status';
 
   /// Routes a signed-out user is allowed to sit on.
   static bool isAuthRoute(String location) =>
@@ -88,6 +98,26 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.sessions,
         builder: (context, state) => const SessionsScreen(),
+      ),
+      GoRoute(
+        path: Routes.becomeDriver,
+        builder: (context, state) => const BecomeDriverScreen(),
+      ),
+      GoRoute(
+        path: Routes.onboarding,
+        builder: (context, state) => const OnboardingChecklistScreen(),
+      ),
+      GoRoute(
+        path: Routes.kycDocuments,
+        builder: (context, state) => const KycDocumentsScreen(),
+      ),
+      GoRoute(
+        path: Routes.vehicles,
+        builder: (context, state) => const VehiclesScreen(),
+      ),
+      GoRoute(
+        path: Routes.approvalStatus,
+        builder: (context, state) => const ApprovalStatusScreen(),
       ),
     ],
   );

@@ -12,9 +12,9 @@ class DriverProfile {
     required this.publicId,
     required this.phone,
     required this.kycStatus,
-    required this.totalTrips,
-    required this.ratingAvg,
-    required this.ratingCount,
+    this.totalTrips = 0,
+    this.ratingAvg = 0,
+    this.ratingCount = 0,
     this.firstName,
     this.lastName,
     this.emergencyContactName,
@@ -35,8 +35,14 @@ class DriverProfile {
   final KycStatus kycStatus;
   final String? kycRejectedReason;
   final DateTime? approvedAt;
+
+  // Stat fields are tolerant of null/absent: a freshly-created profile may omit
+  // them, and onboarding never needs them.
+  @JsonKey(defaultValue: 0)
   final int totalTrips;
+  @JsonKey(defaultValue: 0)
   final num ratingAvg;
+  @JsonKey(defaultValue: 0)
   final int ratingCount;
   final DateTime? createdAt;
   final DateTime? updatedAt;

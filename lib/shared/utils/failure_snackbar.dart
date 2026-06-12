@@ -1,14 +1,20 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/error/app_failure.dart';
 import '../../core/error/error_messages.dart';
 
 /// Resolves any caught error into a user-facing message: an [AppFailure] is
-/// already mapped from its `error.code`; anything else falls back to the
-/// generic message (we never surface raw exception text).
+/// already mapped from its `error.code`; the [ErrorInterceptor] hands callers a
+/// [DioException] whose `error` is that [AppFailure], so unwrap it; anything
+/// else falls back to the generic message (we never surface raw exception text).
 String messageForError(Object error) {
-  if (error is AppFailure) return error.message;
-  return errorMessageFor(AppFailure.unknownCode);
+  final failure = error is AppFailure
+      ? error
+      : (error is DioException && error.error is AppFailure
+            ? error.error as AppFailure
+            : null);
+  return failure?.message ?? errorMessageFor(AppFailure.unknownCode);
 }
 
 extension FailureSnackBar on BuildContext {

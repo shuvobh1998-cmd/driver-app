@@ -18,8 +18,13 @@ class DriverApi {
   final Dio _dio;
 
   /// Adds the DRIVER role to the signed-in user. Returns the updated profile.
+  /// Sends an empty JSON object: the client sets a JSON content-type on every
+  /// request, and the backend rejects a JSON content-type with an empty body.
   Future<UserProfile> upgradeToDriver() async {
-    final res = await _dio.post<dynamic>('/users/me/upgrade-to-driver');
+    final res = await _dio.post<dynamic>(
+      '/users/me/upgrade-to-driver',
+      data: const <String, dynamic>{},
+    );
     return res.unwrap(UserProfile.fromJson);
   }
 

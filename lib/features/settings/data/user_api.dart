@@ -51,13 +51,17 @@ class UserApi {
       _dio.delete<dynamic>('/users/me/sessions/$id');
 
   Future<AccountDeletion> requestAccountDeletion() async {
-    final res = await _dio.post<dynamic>('/users/me/account/delete-request');
+    final res = await _dio.post<dynamic>(
+      '/users/me/account/delete-request',
+      data: const <String, dynamic>{},
+    );
     return res.unwrap(AccountDeletion.fromJson);
   }
 
   Future<AccountDeletion> cancelAccountDeletion() async {
     final res = await _dio.post<dynamic>(
       '/users/me/account/delete-request/cancel',
+      data: const <String, dynamic>{},
     );
     return res.unwrap(AccountDeletion.fromJson);
   }

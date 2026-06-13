@@ -49,6 +49,13 @@ const Map<String, String> kErrorMessages = {
   'INSUFFICIENT_BALANCE': 'Your wallet balance is too low for this payout.',
   'PAYOUT_METHOD_REQUIRED': 'Add a payout method before withdrawing.',
   'ALREADY_RATED': 'You have already rated this trip.',
+  // Earnings & payouts (D5):
+  'PAYMENT_ALREADY_COLLECTED': 'This trip is already settled.',
+  'CASH_ALREADY_COLLECTED': 'This trip is already settled.',
+  'NOT_CASH_TRIP': 'Cash collection only applies to cash trips.',
+  'INVALID_AMOUNT': 'Enter a valid amount.',
+  'PAYOUT_PENDING': 'You already have a payout being processed.',
+  'INVALID_PAYOUT_METHOD': 'Check your payout details and try again.',
 };
 
 /// Resolves a user-facing message for an `error.code`, falling back to the

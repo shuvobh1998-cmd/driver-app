@@ -8,6 +8,13 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_flow_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/driver_home/presentation/screens/driver_home_screen.dart';
+import '../../features/earnings/presentation/screens/earnings_dashboard_screen.dart';
+import '../../features/earnings/presentation/screens/invoice_screen.dart';
+import '../../features/earnings/presentation/screens/payout_detail_screen.dart';
+import '../../features/earnings/presentation/screens/payout_method_screen.dart';
+import '../../features/earnings/presentation/screens/payouts_screen.dart';
+import '../../features/earnings/presentation/screens/request_payout_screen.dart';
+import '../../features/earnings/presentation/screens/wallet_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/approval_status_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/become_driver_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/kyc_documents_screen.dart';
@@ -42,6 +49,11 @@ abstract final class Routes {
   static const tripOffer = '/trip/offer';
   static const activeTrip = '/trip/active';
   static const tripHistory = '/trips';
+  static const earnings = '/earnings';
+  static const wallet = '/earnings/wallet';
+  static const payouts = '/earnings/payouts';
+  static const payoutMethod = '/earnings/payout-method';
+  static const requestPayout = '/earnings/withdraw';
 
   /// Routes a signed-out user is allowed to sit on.
   static bool isAuthRoute(String location) =>
@@ -139,6 +151,36 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.tripHistory,
         builder: (context, state) => const TripHistoryScreen(),
+      ),
+      GoRoute(
+        path: Routes.earnings,
+        builder: (context, state) => const EarningsDashboardScreen(),
+      ),
+      GoRoute(
+        path: Routes.wallet,
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: Routes.payouts,
+        builder: (context, state) => const PayoutsScreen(),
+      ),
+      GoRoute(
+        path: Routes.payoutMethod,
+        builder: (context, state) => const PayoutMethodScreen(),
+      ),
+      GoRoute(
+        path: Routes.requestPayout,
+        builder: (context, state) => const RequestPayoutScreen(),
+      ),
+      GoRoute(
+        path: '/payouts/:id',
+        builder: (context, state) =>
+            PayoutDetailScreen(payoutId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/trips/:id/invoice',
+        builder: (context, state) =>
+            InvoiceScreen(tripId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/trips/:id',

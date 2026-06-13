@@ -53,6 +53,14 @@ class SettingsScreen extends ConsumerWidget {
               isDriver ? Routes.onboarding : Routes.becomeDriver,
             ),
           ),
+          if (isDriver)
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet),
+              title: const Text('Earnings & wallet'),
+              subtitle: const Text('Earnings, wallet ledger and payouts'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(Routes.earnings),
+            ),
           ListTile(
             leading: const Icon(Icons.devices),
             title: const Text('Devices & sessions'),

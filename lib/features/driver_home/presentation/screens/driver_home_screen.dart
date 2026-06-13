@@ -8,6 +8,9 @@ import '../../../../core/core_providers.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../l10n/gen/app_localizations.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
+import '../../../../shared/utils/money.dart';
+import '../../../earnings/data/earnings_providers.dart';
+import '../../../earnings/data/models/earnings_enums.dart';
 import '../../../onboarding_kyc/data/models/onboarding_enums.dart';
 import '../../../onboarding_kyc/data/models/vehicle.dart';
 import '../../../onboarding_kyc/data/onboarding_providers.dart';
@@ -105,6 +108,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       title: l10n.appTitle,
       padded: false,
       actions: [
+        IconButton(
+          tooltip: 'Earnings',
+          icon: const Icon(Icons.account_balance_wallet),
+          onPressed: () => context.push(Routes.earnings),
+        ),
         IconButton(
           tooltip: 'Trip history',
           icon: const Icon(Icons.history),
@@ -327,16 +335,22 @@ class _ControlPanel extends StatelessWidget {
   }
 }
 
-class _EarningsChip extends StatelessWidget {
+class _EarningsChip extends ConsumerWidget {
   const _EarningsChip();
 
   @override
-  Widget build(BuildContext context) {
-    // Earnings figures land in D5; the chip is here so home stays glanceable.
-    return const Chip(
-      avatar: Icon(Icons.account_balance_wallet, size: 18),
-      label: Text('Today · ₹—'),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final today = ref.watch(earningsProvider(EarningsPeriod.today));
+    final label = today.when(
+      loading: () => 'Today · …',
+      error: (_, _) => 'Today · ₹—',
+      data: (s) => 'Today · ${formatPaise(s.netEarning)}',
+    );
+    return ActionChip(
+      avatar: const Icon(Icons.account_balance_wallet, size: 18),
+      label: Text(label),
       visualDensity: VisualDensity.compact,
+      onPressed: () => context.push(Routes.earnings),
     );
   }
 }

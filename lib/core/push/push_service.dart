@@ -40,6 +40,14 @@ class PushService {
     return _messaging.getToken();
   }
 
-  // TODO(D4/D7): foreground/background handlers, full-screen intent display,
-  // deep-link routing, unregister-on-logout.
+  /// Emits a new FCM token whenever it rotates, so the backend registration can
+  /// be refreshed.
+  Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;
+
+  /// Deletes the FCM token on this device (after a server-side unregister, on
+  /// sign-out).
+  Future<void> deleteToken() => _messaging.deleteToken();
+
+  // TODO(D7): foreground/background handlers, full-screen intent display,
+  // deep-link routing from a tapped push.
 }

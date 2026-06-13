@@ -11,6 +11,7 @@ import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../../shared/utils/money.dart';
 import '../../../earnings/data/earnings_providers.dart';
 import '../../../earnings/data/models/earnings_enums.dart';
+import '../../../notifications/presentation/controllers/notifications_controller.dart';
 import '../../../onboarding_kyc/data/models/onboarding_enums.dart';
 import '../../../onboarding_kyc/data/models/vehicle.dart';
 import '../../../onboarding_kyc/data/onboarding_providers.dart';
@@ -108,6 +109,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       title: l10n.appTitle,
       padded: false,
       actions: [
+        const _NotificationsBell(),
         IconButton(
           tooltip: 'Earnings',
           icon: const Icon(Icons.account_balance_wallet),
@@ -179,6 +181,25 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Notifications bell with an unread badge, driven by [unreadCountControllerProvider].
+class _NotificationsBell extends ConsumerWidget {
+  const _NotificationsBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(unreadCountControllerProvider).value ?? 0;
+    return IconButton(
+      tooltip: 'Notifications',
+      onPressed: () => context.push(Routes.notifications),
+      icon: Badge(
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: const Icon(Icons.notifications_outlined),
       ),
     );
   }

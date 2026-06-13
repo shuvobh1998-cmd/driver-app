@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../../shared/utils/money.dart';
+import '../../../notifications/presentation/widgets/sos_dialog.dart';
 import '../../data/models/trip.dart';
 import '../../data/models/trip_enums.dart';
 import '../controllers/active_trip_controller.dart';
@@ -144,6 +145,11 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
       appBar: AppBar(
         title: const Text('Current trip'),
         actions: [
+          IconButton(
+            tooltip: 'Share my ride',
+            icon: const Icon(Icons.share_location),
+            onPressed: () => context.push('/trips/${trip.publicId}/share'),
+          ),
           PopupMenuButton<String>(
             onSelected: (v) {
               if (v == 'cancel') _cancel(trip);
@@ -194,6 +200,20 @@ class _ActiveTripScreenState extends ConsumerState<ActiveTripScreen> {
                       action: action,
                       loading: _busy,
                       onPressed: () => _runAction(action, trip),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          showSosSheet(context, ref, tripId: trip.publicId),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.danger,
+                        side: const BorderSide(color: AppColors.danger),
+                        minimumSize: const Size.fromHeight(
+                          AppSpacing.minTouchTarget,
+                        ),
+                      ),
+                      icon: const Icon(Icons.emergency),
+                      label: const Text('Emergency SOS'),
                     ),
                   ],
                 ),

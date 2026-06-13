@@ -21,6 +21,13 @@ import '../../features/earnings/presentation/screens/payout_method_screen.dart';
 import '../../features/earnings/presentation/screens/payouts_screen.dart';
 import '../../features/earnings/presentation/screens/request_payout_screen.dart';
 import '../../features/earnings/presentation/screens/wallet_screen.dart';
+import '../../features/notifications/presentation/screens/help_center_screen.dart';
+import '../../features/notifications/presentation/screens/legal_screen.dart';
+import '../../features/notifications/presentation/screens/new_ticket_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/notifications/presentation/screens/share_trip_screen.dart';
+import '../../features/notifications/presentation/screens/support_tickets_screen.dart';
+import '../../features/notifications/presentation/screens/ticket_detail_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/approval_status_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/become_driver_screen.dart';
 import '../../features/onboarding_kyc/presentation/screens/kyc_documents_screen.dart';
@@ -63,6 +70,11 @@ abstract final class Routes {
   static const carpool = '/carpool';
   static const postScheduledTrip = '/carpool/new';
   static const chats = '/chats';
+  static const notifications = '/notifications';
+  static const support = '/support';
+  static const newTicket = '/support/new';
+  static const lostItem = '/support/lost-item';
+  static const help = '/help';
 
   /// Routes a signed-out user is allowed to sit on.
   static bool isAuthRoute(String location) =>
@@ -211,6 +223,37 @@ final routerProvider = Provider<GoRouter>((ref) {
           title: state.extra is String ? state.extra as String? : null,
         ),
       ),
+      // Notifications, support & help (D7).
+      GoRoute(
+        path: Routes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: Routes.support,
+        builder: (context, state) => const SupportTicketsScreen(),
+      ),
+      GoRoute(
+        path: Routes.newTicket,
+        builder: (context, state) => const NewTicketScreen(),
+      ),
+      GoRoute(
+        path: Routes.lostItem,
+        builder: (context, state) => const NewTicketScreen(lostItem: true),
+      ),
+      GoRoute(
+        path: '/support/:id',
+        builder: (context, state) =>
+            TicketDetailScreen(ticketId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.help,
+        builder: (context, state) => const HelpCenterScreen(),
+      ),
+      GoRoute(
+        path: '/legal/:slug',
+        builder: (context, state) =>
+            LegalScreen(slug: state.pathParameters['slug']!),
+      ),
       GoRoute(
         path: '/payouts/:id',
         builder: (context, state) =>
@@ -220,6 +263,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/trips/:id/invoice',
         builder: (context, state) =>
             InvoiceScreen(tripId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/trips/:id/share',
+        builder: (context, state) =>
+            ShareTripScreen(tripId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/trips/:id',

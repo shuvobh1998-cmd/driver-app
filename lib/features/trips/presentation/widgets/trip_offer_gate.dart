@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../notifications/data/device_registrar.dart';
 import '../../data/trip_realtime.dart';
 import '../controllers/trip_offer_controller.dart';
 
@@ -19,6 +20,8 @@ class TripOfferGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Keep the socket connected and routing events for the whole session.
     ref.watch(tripRealtimeCoordinatorProvider);
+    // Register/unregister the FCM device token as auth state changes (D7).
+    ref.watch(deviceRegistrarProvider);
 
     ref.listen(tripOfferControllerProvider, (previous, next) {
       // Only push on a fresh offer (null → offer), not on internal replacements.

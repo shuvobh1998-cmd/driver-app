@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../design_system/design_system.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../../shared/utils/phone.dart';
 import '../../../../shared/utils/validators.dart';
@@ -86,8 +87,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return AppScaffold(
-      title: 'Reset password',
+      title: l10n.resetTitle,
       body: _step == _Step.phone
           ? Form(
               key: _phoneForm,
@@ -95,23 +97,23 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 children: [
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    'Forgot your PIN?',
+                    l10n.forgotPinTitle,
                     style: theme.textTheme.headlineSmall,
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    "Enter your number and we'll text a code to reset it.",
+                    l10n.forgotPinSubtitle,
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   PhoneNumberField(
                     controller: _phone,
-                    label: 'Phone number',
+                    label: l10n.phoneNumber,
                     validator: Validators.phone,
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   PrimaryButton(
-                    label: 'Send code',
+                    label: l10n.sendCode,
                     loading: _busy,
                     onPressed: _requestReset,
                   ),
@@ -123,16 +125,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               child: ListView(
                 children: [
                   const SizedBox(height: AppSpacing.md),
-                  Text('Set a new PIN', style: theme.textTheme.headlineSmall),
+                  Text(
+                    l10n.setNewPinTitle,
+                    style: theme.textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Code sent to ${Phone.pretty(_phoneE164)}.',
+                    l10n.codeSentTo(Phone.pretty(_phoneE164)),
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   AppTextField(
                     controller: _code,
-                    label: '6-digit code',
+                    label: l10n.sixDigitCode,
                     prefixIcon: Icons.sms,
                     keyboardType: TextInputType.number,
                     validator: (v) => Validators.otp(v),
@@ -140,7 +145,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     controller: _password,
-                    label: 'New password (6-digit PIN)',
+                    label: l10n.newPasswordPinLabel,
                     prefixIcon: Icons.lock,
                     obscureText: true,
                     keyboardType: TextInputType.number,
@@ -149,16 +154,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     controller: _confirm,
-                    label: 'Re-type new PIN',
+                    label: l10n.retypeNewPin,
                     prefixIcon: Icons.lock_outline,
                     obscureText: true,
                     keyboardType: TextInputType.number,
                     validator: (v) =>
-                        v != _password.text ? 'PINs do not match.' : null,
+                        v != _password.text ? l10n.pinsDoNotMatch : null,
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   PrimaryButton(
-                    label: 'Reset password',
+                    label: l10n.resetPasswordButton,
                     loading: _busy,
                     onPressed: _confirmReset,
                   ),

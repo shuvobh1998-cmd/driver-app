@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../design_system/design_system.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../../shared/utils/phone.dart';
 import '../../../../shared/utils/validators.dart';
@@ -51,6 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     return AppScaffold(
       body: Form(
         key: _formKey,
@@ -59,29 +61,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(height: AppSpacing.xl),
             Icon(Icons.local_taxi, size: 56, color: theme.colorScheme.primary),
             const SizedBox(height: AppSpacing.md),
-            Text('Welcome back', style: theme.textTheme.headlineSmall),
+            Text(l10n.loginWelcome, style: theme.textTheme.headlineSmall),
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Sign in to start driving.',
-              style: theme.textTheme.bodyMedium,
-            ),
+            Text(l10n.loginSubtitle, style: theme.textTheme.bodyMedium),
             const SizedBox(height: AppSpacing.xl),
             PhoneNumberField(
               controller: _phone,
-              label: 'Phone number',
+              label: l10n.phoneNumber,
               validator: Validators.phone,
             ),
             const SizedBox(height: AppSpacing.md),
             AppTextField(
               controller: _password,
-              label: 'Password (6-digit PIN)',
+              label: l10n.passwordPinLabel,
               prefixIcon: Icons.lock,
               obscureText: _obscure,
               keyboardType: TextInputType.number,
               // Login only checks the field is present — the backend is the
               // authority on the password. (Setting a password still enforces
               // the 6-digit PIN rule in signup/reset.)
-              validator: (v) => Validators.required(v, field: 'Password'),
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? l10n.passwordRequired
+                  : null,
               suffix: IconButton(
                 icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
                 onPressed: () => setState(() => _obscure = !_obscure),
@@ -93,12 +94,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 onPressed: _submitting
                     ? null
                     : () => context.push(Routes.forgot),
-                child: const Text('Forgot password?'),
+                child: Text(l10n.forgotPassword),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
             PrimaryButton(
-              label: 'Log in',
+              label: l10n.logIn,
               loading: _submitting,
               onPressed: _submit,
             ),
@@ -106,12 +107,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('New here?'),
+                Text(l10n.newHere),
                 TextButton(
                   onPressed: _submitting
                       ? null
                       : () => context.push(Routes.signup),
-                  child: const Text('Create an account'),
+                  child: Text(l10n.createAccount),
                 ),
               ],
             ),

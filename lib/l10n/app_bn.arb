@@ -17,5 +17,27 @@
   "welcomeSafetyTitle": "নিরাপদ থাকুন",
   "welcomeSafetyBody": "এক-ট্যাপ SOS, লাইভ ট্রিপ শেয়ারিং এবং যখন প্রয়োজন তখন সহায়তা।",
   "welcomeEarnTitle": "দ্রুত অর্থ পান",
-  "welcomeEarnBody": "পয়সা পর্যন্ত আয় ট্র্যাক করুন এবং আপনার ব্যাঙ্ক বা UPI-তে তুলুন।"
+  "welcomeEarnBody": "পয়সা পর্যন্ত আয় ট্র্যাক করুন এবং আপনার ব্যাঙ্ক বা UPI-তে তুলুন।",
+
+  "phoneNumber": "ফোন নম্বর",
+  "loginWelcome": "আবার স্বাগতম",
+  "loginSubtitle": "চালানো শুরু করতে সাইন ইন করুন।",
+  "passwordPinLabel": "পাসওয়ার্ড (৬-সংখ্যার পিন)",
+  "passwordRequired": "পাসওয়ার্ড প্রয়োজন।",
+  "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+  "logIn": "লগ ইন",
+  "newHere": "নতুন এসেছেন?",
+  "createAccount": "অ্যাকাউন্ট তৈরি করুন",
+
+  "resetTitle": "পাসওয়ার্ড রিসেট করুন",
+  "forgotPinTitle": "আপনার পিন ভুলে গেছেন?",
+  "forgotPinSubtitle": "আপনার নম্বর লিখুন, আমরা রিসেট করার একটি কোড পাঠাব।",
+  "sendCode": "কোড পাঠান",
+  "setNewPinTitle": "একটি নতুন পিন সেট করুন",
+  "codeSentTo": "{phone}-এ কোড পাঠানো হয়েছে।",
+  "sixDigitCode": "৬-সংখ্যার কোড",
+  "newPasswordPinLabel": "নতুন পাসওয়ার্ড (৬-সংখ্যার পিন)",
+  "retypeNewPin": "নতুন পিন আবার লিখুন",
+  "pinsDoNotMatch": "পিন মেলেনি।",
+  "resetPasswordButton": "পাসওয়ার্ড রিসেট করুন"
 }

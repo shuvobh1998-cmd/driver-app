@@ -17,5 +17,27 @@
   "welcomeSafetyTitle": "सुरक्षित रहें",
   "welcomeSafetyBody": "एक-टैप SOS, लाइव ट्रिप शेयरिंग और जब भी ज़रूरत हो तब सहायता।",
   "welcomeEarnTitle": "तेज़ी से भुगतान पाएँ",
-  "welcomeEarnBody": "पैसे तक की कमाई ट्रैक करें और अपने बैंक या UPI में निकालें।"
+  "welcomeEarnBody": "पैसे तक की कमाई ट्रैक करें और अपने बैंक या UPI में निकालें।",
+
+  "phoneNumber": "फ़ोन नंबर",
+  "loginWelcome": "वापसी पर स्वागत है",
+  "loginSubtitle": "ड्राइविंग शुरू करने के लिए साइन इन करें।",
+  "passwordPinLabel": "पासवर्ड (6-अंकीय पिन)",
+  "passwordRequired": "पासवर्ड आवश्यक है।",
+  "forgotPassword": "पासवर्ड भूल गए?",
+  "logIn": "लॉग इन",
+  "newHere": "नए हैं?",
+  "createAccount": "खाता बनाएँ",
+
+  "resetTitle": "पासवर्ड रीसेट करें",
+  "forgotPinTitle": "अपना पिन भूल गए?",
+  "forgotPinSubtitle": "अपना नंबर डालें, हम उसे रीसेट करने के लिए एक कोड भेजेंगे।",
+  "sendCode": "कोड भेजें",
+  "setNewPinTitle": "नया पिन सेट करें",
+  "codeSentTo": "{phone} पर कोड भेजा गया।",
+  "sixDigitCode": "6-अंकीय कोड",
+  "newPasswordPinLabel": "नया पासवर्ड (6-अंकीय पिन)",
+  "retypeNewPin": "नया पिन फिर से लिखें",
+  "pinsDoNotMatch": "पिन मेल नहीं खाते।",
+  "resetPasswordButton": "पासवर्ड रीसेट करें"
 }

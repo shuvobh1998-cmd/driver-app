@@ -21,7 +21,7 @@ class ChatThreadsScreen extends ConsumerWidget {
       title: 'Chats',
       padded: false,
       body: async.when(
-        loading: () => const LoadingState(),
+        loading: () => const SkeletonList(),
         error: (e, _) => ErrorState(
           message: messageForError(e),
           onRetry: controller.refresh,

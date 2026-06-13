@@ -50,7 +50,7 @@ class _TripHistoryScreenState extends ConsumerState<TripHistoryScreen> {
       title: 'Trip history',
       padded: false,
       body: async.when(
-        loading: () => const LoadingState(),
+        loading: () => const SkeletonList(),
         error: (e, _) => ErrorState(
           message: messageForError(e),
           onRetry: controller.refresh,

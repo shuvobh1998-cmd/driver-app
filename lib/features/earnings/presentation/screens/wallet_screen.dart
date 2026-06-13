@@ -60,7 +60,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ledgerAsync.when(
-          loading: () => const LoadingState(),
+          loading: () => const SkeletonList(),
           error: (e, _) => ErrorState(
             message: messageForError(e),
             onRetry: () =>

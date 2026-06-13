@@ -58,7 +58,7 @@ class _PayoutsScreenState extends ConsumerState<PayoutsScreen> {
         ),
       ],
       body: async.when(
-        loading: () => const LoadingState(),
+        loading: () => const SkeletonList(),
         error: (e, _) => ErrorState(
           message: messageForError(e),
           onRetry: controller.refresh,

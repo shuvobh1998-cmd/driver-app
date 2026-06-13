@@ -68,7 +68,7 @@ class _SupportTicketsScreenState extends ConsumerState<SupportTicketsScreen> {
         label: const Text('New ticket'),
       ),
       body: async.when(
-        loading: () => const LoadingState(),
+        loading: () => const SkeletonList(),
         error: (e, _) => ErrorState(
           message: messageForError(e),
           onRetry: controller.refresh,

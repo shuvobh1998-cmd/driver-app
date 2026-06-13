@@ -13,4 +13,5 @@ export 'widgets/empty_state.dart';
 export 'widgets/error_state.dart';
 export 'widgets/loading_state.dart';
 export 'widgets/primary_button.dart';
+export 'widgets/skeleton_loader.dart';
 export 'widgets/status_badge.dart';

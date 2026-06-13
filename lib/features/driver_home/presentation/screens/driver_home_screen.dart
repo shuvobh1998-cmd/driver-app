@@ -119,6 +119,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           onPressed: () => context.push(Routes.tripHistory),
         ),
         IconButton(
+          tooltip: 'Carpool',
+          icon: const Icon(Icons.groups),
+          onPressed: () => context.push(Routes.carpool),
+        ),
+        IconButton(
           tooltip: 'Settings',
           icon: const Icon(Icons.settings),
           onPressed: () => context.push(Routes.settings),

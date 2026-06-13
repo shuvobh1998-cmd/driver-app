@@ -61,6 +61,14 @@ class SettingsScreen extends ConsumerWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push(Routes.earnings),
             ),
+          if (isDriver)
+            ListTile(
+              leading: const Icon(Icons.groups),
+              title: const Text('Carpool trips'),
+              subtitle: const Text('Post scheduled trips and chat with riders'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(Routes.carpool),
+            ),
           ListTile(
             leading: const Icon(Icons.devices),
             title: const Text('Devices & sessions'),

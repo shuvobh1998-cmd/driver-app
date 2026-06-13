@@ -7,6 +7,12 @@ import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_flow_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/carpool/presentation/screens/chat_thread_screen.dart';
+import '../../features/carpool/presentation/screens/chat_threads_screen.dart';
+import '../../features/carpool/presentation/screens/my_scheduled_trips_screen.dart';
+import '../../features/carpool/presentation/screens/post_scheduled_trip_screen.dart';
+import '../../features/carpool/presentation/screens/scheduled_trip_detail_screen.dart';
+import '../../features/carpool/presentation/screens/scheduled_trip_edit_screen.dart';
 import '../../features/driver_home/presentation/screens/driver_home_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_dashboard_screen.dart';
 import '../../features/earnings/presentation/screens/invoice_screen.dart';
@@ -54,6 +60,9 @@ abstract final class Routes {
   static const payouts = '/earnings/payouts';
   static const payoutMethod = '/earnings/payout-method';
   static const requestPayout = '/earnings/withdraw';
+  static const carpool = '/carpool';
+  static const postScheduledTrip = '/carpool/new';
+  static const chats = '/chats';
 
   /// Routes a signed-out user is allowed to sit on.
   static bool isAuthRoute(String location) =>
@@ -171,6 +180,36 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.requestPayout,
         builder: (context, state) => const RequestPayoutScreen(),
+      ),
+      // Carpool (D6) — specific paths declared before `/carpool/:id`.
+      GoRoute(
+        path: Routes.carpool,
+        builder: (context, state) => const MyScheduledTripsScreen(),
+      ),
+      GoRoute(
+        path: Routes.postScheduledTrip,
+        builder: (context, state) => const PostScheduledTripScreen(),
+      ),
+      GoRoute(
+        path: '/carpool/:id/edit',
+        builder: (context, state) =>
+            ScheduledTripEditScreen(tripId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/carpool/:id',
+        builder: (context, state) =>
+            ScheduledTripDetailScreen(tripId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.chats,
+        builder: (context, state) => const ChatThreadsScreen(),
+      ),
+      GoRoute(
+        path: '/chats/:otherUserId',
+        builder: (context, state) => ChatThreadScreen(
+          otherUserId: state.pathParameters['otherUserId']!,
+          title: state.extra is String ? state.extra as String? : null,
+        ),
       ),
       GoRoute(
         path: '/payouts/:id',

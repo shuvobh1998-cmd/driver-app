@@ -53,6 +53,25 @@ make apk              # flutter build apk --debug --flavor dev -t lib/main_dev.d
 > iOS flavor schemes (Runner Dev/Staging/Prod) are set up in Xcode in D1; the
 > Android flavors are wired here.
 
+## Release build (store)
+
+Release signing reads `android/key.properties` (gitignored). Without it,
+release builds fall back to debug signing so CI and dev machines still build.
+To produce a store bundle:
+
+1. Generate an upload keystore (kept out of the repo) and copy
+   `android/key.properties.example` → `android/key.properties`, filling in the
+   keystore path + passwords.
+2. Build the signed Android App Bundle:
+
+```sh
+flutter build appbundle --flavor prod -t lib/main_prod.dart
+# → build/app/outputs/bundle/prodRelease/app-prod-release.aab
+```
+
+The brand launcher icon + native splash are generated from `assets/branding/`
+via `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create`.
+
 ## Codegen
 
 | Command | What it does |

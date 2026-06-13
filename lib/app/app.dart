@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../design_system/theme.dart';
 import '../features/settings/presentation/controllers/locale_controller.dart';
+import '../features/trips/presentation/widgets/trip_offer_gate.dart';
 import '../l10n/gen/app_localizations.dart';
 import 'router/app_router.dart';
 
@@ -26,6 +27,10 @@ class DriverApp extends ConsumerWidget {
       themeMode: ThemeMode.system,
       locale: locale,
       routerConfig: router,
+      // Keeps the realtime coordinator alive and pushes the full-screen trip
+      // offer over any screen the moment one arrives.
+      builder: (context, child) =>
+          TripOfferGate(child: child ?? const SizedBox.shrink()),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

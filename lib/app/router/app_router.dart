@@ -16,6 +16,12 @@ import '../../features/onboarding_kyc/presentation/screens/vehicles_screen.dart'
 import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/sessions_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/trips/presentation/screens/active_trip_screen.dart';
+import '../../features/trips/presentation/screens/incoming_offer_screen.dart';
+import '../../features/trips/presentation/screens/rate_rider_screen.dart';
+import '../../features/trips/presentation/screens/trip_detail_screen.dart';
+import '../../features/trips/presentation/screens/trip_history_screen.dart';
+import '../../features/trips/presentation/screens/trip_summary_screen.dart';
 
 /// Named route paths. Centralized so deep links (FCM) and the auth guard
 /// reference one source of truth as screens are added per sprint.
@@ -33,6 +39,9 @@ abstract final class Routes {
   static const kycDocuments = '/onboarding/documents';
   static const vehicles = '/onboarding/vehicles';
   static const approvalStatus = '/onboarding/status';
+  static const tripOffer = '/trip/offer';
+  static const activeTrip = '/trip/active';
+  static const tripHistory = '/trips';
 
   /// Routes a signed-out user is allowed to sit on.
   static bool isAuthRoute(String location) =>
@@ -118,6 +127,33 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.approvalStatus,
         builder: (context, state) => const ApprovalStatusScreen(),
+      ),
+      GoRoute(
+        path: Routes.tripOffer,
+        builder: (context, state) => const IncomingOfferScreen(),
+      ),
+      GoRoute(
+        path: Routes.activeTrip,
+        builder: (context, state) => const ActiveTripScreen(),
+      ),
+      GoRoute(
+        path: Routes.tripHistory,
+        builder: (context, state) => const TripHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/trips/:id',
+        builder: (context, state) =>
+            TripDetailScreen(tripId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/trip/:id/summary',
+        builder: (context, state) =>
+            TripSummaryScreen(tripId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/trip/:id/rate',
+        builder: (context, state) =>
+            RateRiderScreen(tripId: state.pathParameters['id']!),
       ),
     ],
   );

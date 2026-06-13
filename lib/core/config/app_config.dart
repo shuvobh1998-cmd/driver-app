@@ -23,7 +23,8 @@ class AppConfig {
   /// REST base URL, e.g. `https://api.dev.example.com`.
   final String apiBaseUrl;
 
-  /// Socket.IO base URL (the `/driver` namespace is appended by the client).
+  /// Socket.IO base URL — the gateway host root (no namespace, no `/api/v1`),
+  /// per the locked realtime contract.
   final String wsBaseUrl;
 
   bool get isProd => flavor == AppFlavor.prod;

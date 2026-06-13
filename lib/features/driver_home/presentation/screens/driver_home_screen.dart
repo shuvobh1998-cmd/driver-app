@@ -11,6 +11,7 @@ import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../onboarding_kyc/data/models/onboarding_enums.dart';
 import '../../../onboarding_kyc/data/models/vehicle.dart';
 import '../../../onboarding_kyc/data/onboarding_providers.dart';
+import '../../../trips/presentation/controllers/active_trip_controller.dart';
 import '../../data/driver_home_providers.dart';
 import '../../data/models/driver_state.dart';
 import '../controllers/driver_home_controller.dart';
@@ -83,6 +84,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final vehiclesAsync = ref.watch(vehiclesProvider);
     final centerAsync = ref.watch(initialMapCenterProvider);
     final transitioning = ref.watch(driverTransitioningProvider);
+    final hasActiveTrip = ref.watch(hasActiveTripProvider);
 
     // Surface go-online/offline failures (KYC_INCOMPLETE, VEHICLE_NOT_APPROVED…)
     // as a snackbar without leaving the screen.
@@ -104,6 +106,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       padded: false,
       actions: [
         IconButton(
+          tooltip: 'Trip history',
+          icon: const Icon(Icons.history),
+          onPressed: () => context.push(Routes.tripHistory),
+        ),
+        IconButton(
           tooltip: 'Settings',
           icon: const Icon(Icons.settings),
           onPressed: () => context.push(Routes.settings),
@@ -124,11 +131,22 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               ),
             ),
           ),
-          if (online)
+          if (online && !hasActiveTrip)
             const Positioned(
               top: AppSpacing.sm,
               right: AppSpacing.md,
               child: SafeArea(child: _SearchingChip()),
+            ),
+          if (hasActiveTrip)
+            Positioned(
+              top: AppSpacing.xl,
+              left: AppSpacing.md,
+              right: AppSpacing.md,
+              child: SafeArea(
+                child: _ResumeTripBanner(
+                  onTap: () => context.push(Routes.activeTrip),
+                ),
+              ),
             ),
           // Bottom control panel.
           Positioned(
@@ -191,6 +209,44 @@ class _SearchingChip extends StatelessWidget {
             SizedBox(width: AppSpacing.sm),
             Text('Searching for trips…'),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResumeTripBanner extends StatelessWidget {
+  const _ResumeTripBanner({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: AppColors.brand,
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radius),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            children: [
+              const Icon(Icons.directions_car, color: Colors.white),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  'You have an active trip — tap to resume',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white),
+            ],
+          ),
         ),
       ),
     );

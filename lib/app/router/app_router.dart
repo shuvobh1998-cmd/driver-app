@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/storage/app_preferences.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -42,11 +43,13 @@ import '../../features/trips/presentation/screens/rate_rider_screen.dart';
 import '../../features/trips/presentation/screens/trip_detail_screen.dart';
 import '../../features/trips/presentation/screens/trip_history_screen.dart';
 import '../../features/trips/presentation/screens/trip_summary_screen.dart';
+import '../../features/welcome/presentation/welcome_screen.dart';
 
 /// Named route paths. Centralized so deep links (FCM) and the auth guard
 /// reference one source of truth as screens are added per sprint.
 abstract final class Routes {
   static const splash = '/splash';
+  static const welcome = '/welcome';
   static const login = '/login';
   static const signup = '/signup';
   static const forgot = '/forgot';
@@ -103,15 +106,32 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (!auth.isResolved) return onSplash ? null : Routes.splash;
 
       final loggedIn = auth.isAuthenticated;
-      if (onSplash) return loggedIn ? Routes.home : Routes.login;
-      if (!loggedIn && !Routes.isAuthRoute(loc)) return Routes.login;
-      if (loggedIn && Routes.isAuthRoute(loc)) return Routes.home;
+      final seenIntro = ref.read(onboardingSeenProvider);
+      final onWelcome = loc == Routes.welcome;
+
+      // Signed-in users never see the intro or auth screens.
+      if (loggedIn) {
+        if (onSplash || onWelcome || Routes.isAuthRoute(loc)) {
+          return Routes.home;
+        }
+        return null;
+      }
+
+      // Signed-out: first launch sees the intro tour, then login.
+      final entry = seenIntro ? Routes.login : Routes.welcome;
+      if (onSplash) return entry;
+      if (onWelcome) return seenIntro ? Routes.login : null;
+      if (!Routes.isAuthRoute(loc)) return entry;
       return null;
     },
     routes: [
       GoRoute(
         path: Routes.splash,
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: Routes.welcome,
+        builder: (context, state) => const WelcomeScreen(),
       ),
       GoRoute(
         path: Routes.login,

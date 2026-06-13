@@ -1,5 +1,21 @@
 {
   "@@locale": "hi",
   "appTitle": "ड्राइवर",
-  "placeholderTitle": "स्कैफ़ोल्ड तैयार"
+
+  "skip": "छोड़ें",
+  "next": "आगे",
+  "getStarted": "शुरू करें",
+  "retry": "पुनः प्रयास करें",
+  "cancel": "रद्द करें",
+  "save": "सहेजें",
+  "done": "पूर्ण",
+  "close": "बंद करें",
+  "loading": "लोड हो रहा है…",
+
+  "welcomeDriveTitle": "चलाएँ और कमाएँ",
+  "welcomeDriveBody": "ऑनलाइन जाएँ, राइड ऑफ़र स्वीकार करें और हर ट्रिप पर कमाएँ।",
+  "welcomeSafetyTitle": "सुरक्षित रहें",
+  "welcomeSafetyBody": "एक-टैप SOS, लाइव ट्रिप शेयरिंग और जब भी ज़रूरत हो तब सहायता।",
+  "welcomeEarnTitle": "तेज़ी से भुगतान पाएँ",
+  "welcomeEarnBody": "पैसे तक की कमाई ट्रैक करें और अपने बैंक या UPI में निकालें।"
 }

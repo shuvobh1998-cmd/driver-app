@@ -2,10 +2,26 @@
   "@@locale": "en",
   "appTitle": "Driver",
   "@appTitle": {
-    "description": "The application name shown in the app bar."
+    "description": "The application name shown in the app bar and OS task switcher."
   },
-  "placeholderTitle": "Scaffold ready",
-  "@placeholderTitle": {
-    "description": "Sprint-0 placeholder home screen heading."
+
+  "skip": "Skip",
+  "next": "Next",
+  "getStarted": "Get started",
+  "retry": "Retry",
+  "cancel": "Cancel",
+  "save": "Save",
+  "done": "Done",
+  "close": "Close",
+  "loading": "Loading…",
+
+  "welcomeDriveTitle": "Drive & earn",
+  "welcomeDriveBody": "Go online, accept ride offers, and earn on every trip.",
+  "welcomeSafetyTitle": "Stay safe",
+  "welcomeSafetyBody": "One-tap SOS, live trip sharing, and support whenever you need it.",
+  "welcomeEarnTitle": "Get paid fast",
+  "welcomeEarnBody": "Track earnings to the paisa and withdraw to your bank or UPI.",
+  "@welcomeDriveTitle": {
+    "description": "First-launch intro tour — slide titles and bodies."
   }
 }

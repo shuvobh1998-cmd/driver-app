@@ -31,6 +31,9 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+# Gradle writes android/build/ too, which the root-anchored /build/ above misses.
+android/build/
+android/.kotlin/
 /coverage/
 
 # Symbolication related

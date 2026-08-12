@@ -48,6 +48,8 @@ No screen hand-rolls colors or paddings.
 | Push | **firebase_messaging** + **flutter_local_notifications** | Full-screen trip-offer notification. |
 | Payments | **razorpay_flutter** | Only for completeness; driver mostly cash/wallet. |
 | Image | **image_picker** + **flutter_image_compress** | Resize KYC/vehicle photos to ≤1024px wide, JPEG q80. |
+| Image display | **cached_network_image** (D9) | Server images come from Cloudinary CDN. Cache public URLs (avatar, vehicle); never cache KYC signed URLs past their 1h TTL. |
+| File picking | **file_picker** (D9) | PDF KYC documents — backend accepts `application/pdf`. |
 | Local DB | **drift** (only where offline matters: KYC draft, queued location pings) | Keep minimal. |
 | Tests | **flutter_test** + **integration_test** + **mocktail** | Critical paths only. |
 
@@ -138,9 +140,13 @@ gen/  models/               # OpenAPI-generated DTOs (codegen output)
 | **D5** | Earnings, wallet & payouts | Earnings dashboard, wallet ledger, cash-collected close, payout method + withdrawal | Driver payments/wallet | Driver sees money and withdraws it. |
 | **D6** | Carpool + chat | Post/manage scheduled trips, bookings, start/complete, 1:1 chat | Scheduled trips + chat + WS | Driver runs scheduled-carpool trips and chats with riders. |
 | **D7** | Notifications, safety & launch | FCM inbox, SOS, live-share, support tickets, settings polish, store prep | Notifications, safety, support + WS | Production-ready, store-submittable build. |
+| **D8** | Launch polish | Brand icon + native splash, shimmer skeletons, first-launch intro tour, auth l10n (en/bn/hi), release signing | — | Store-ready build with launch-grade first impression. |
+| **D9** | Media pipeline hardening | Cloudinary-era image handling: signed-URL resilience, cached images, pre-upload size guard, PDF KYC path | Backend S11 (storage swap) | Every image renders reliably and cheaply; no upload fails at the server. |
 
 > ⭐ D2 is the centerpiece of this request (KYC + submission). D1 must land first
 > because every D2 call is authenticated.
+>
+> D8 and D9 are short post-D7 passes (days, not weeks), not full 2-week sprints.
 
 ---
 
@@ -378,6 +384,151 @@ WS: `notification.received`, `payment.succeeded|failed`.
 
 ---
 
+## D8 — Launch polish ✅
+
+**Goal:** The build looks and feels shippable on first open — branded, no bare
+spinners, a guided first launch, and signable for the store.
+
+### Delivered
+- Brand app icon + native splash (light/dark, Android 12+ API) — `flutter_launcher_icons` + `flutter_native_splash`.
+- `SkeletonLoader` design-system widget; shimmer placeholders on every paginated list (trip history, wallet, payouts, notifications, support tickets, chat threads, scheduled trips).
+- First-launch intro tour on the welcome screen, gated by `AppPreferences`.
+- l10n foundation (`app_en` / `app_bn` / `app_hi`) with the login + reset-password screens fully localized.
+- Android release signing config (`key.properties`) + store-build docs in the README.
+
+---
+
+## D9 — Media pipeline hardening
+
+**Goal:** Now that backend storage is Cloudinary, every image in the app renders
+reliably, cheaply, and never dead-ends — and no upload reaches the server only to be
+rejected.
+
+> **Context — nothing new to upload.** All three uploads already ship: driver profile
+> image (D1), KYC documents and vehicle photo (D2). Backend Sprint 11 swapped storage
+> from Supabase to Cloudinary behind **unchanged endpoint contracts** — same multipart
+> request, same JSON response ([`others/backend/sprints/SPRINT_11.md`](../others/backend/sprints/SPRINT_11.md), Feature 8).
+> The existing Flutter upload code keeps working as-is. This sprint fixes the four
+> *client-side* gaps that Cloudinary's delivery model exposes.
+
+### What Cloudinary changes for the client
+
+| Asset | Cloudinary delivery | Client consequence |
+| --- | --- | --- |
+| Driver profile image | Public folder, direct `secure_url`, `w_400,h_400,c_fill,g_face,f_auto,q_auto` | Stable URL — safe to cache aggressively. |
+| Vehicle photo | Public folder, `w_1024,h_768,c_fit,f_auto,q_auto` | Stable URL — safe to cache. |
+| KYC document | **Authenticated** delivery, short-lived **signed URL, 1h TTL** | URL rots. Must handle expiry + refetch. |
+
+### Tasks
+
+**1. Signed-URL resilience (KYC thumbnails)**
+`DocUploadRow` renders a bare `Image.network(doc.fileUrl)` with no `errorBuilder`.
+Once the 1h signed URL expires, the thumbnail fails silently — no error state, no
+recovery. Add an error state with tap-to-retry that refetches
+`GET /drivers/me/kyc/documents` for a fresh signed URL, and invalidate the docs
+provider when the KYC screen is reopened after being backgrounded.
+
+**2. Shared cached-image widget**
+There is no image caching in the app — every avatar, vehicle photo, and doc thumbnail
+is a fresh network fetch on each build. Add `cached_network_image` and one
+design-system `AppNetworkImage` with consistent loading (skeleton, reusing D8's
+`SkeletonLoader`) and error states. Adopt it at all four current call sites:
+profile avatar, `VehicleCard` photo, `DocUploadRow` thumbnail, and the carpool
+rider avatars. Cache policy differs by asset: public URLs cache freely; KYC signed
+URLs must **not** be cached past their TTL.
+
+**3. Pre-upload size guard**
+Backend caps multipart at **5MB** and the KYC screen only states it as copy. Compression
+(≤1024px, JPEG q80) usually lands well under, but a PDF or an unusually large capture can
+exceed it and wastes a full round-trip before failing. Assert the compressed file size
+before the multipart POST and surface a friendly, actionable error instead.
+
+The check must run **on every send, not just at pick time**: `retry()` and the
+resume-after-kill path reuse a saved draft path and never pass through a picker. Drafts
+live in the OS temporary directory, which the OS may reclaim while the app is away — so a
+retry can hand a dead path to `MultipartFile.fromFile` and surface a raw filesystem error.
+A vanished draft is unrecoverable, so it is dropped (prompting a fresh capture) rather than
+left offering a retry that can never succeed; an over-cap draft stays retryable.
+
+**4. PDF path for KYC documents**
+The backend accepts `application/pdf` for KYC and `KycDocument.isPdf` already renders a
+PDF thumbnail — but `DocCaptureSheet` offers only Camera and Gallery, so a driver whose
+Aadhaar or DL is a PDF cannot complete onboarding. Add a "Choose a file" option
+(`file_picker`) restricted to `pdf`/`jpg`/`png`, and skip image compression for PDFs.
+
+**5. iOS camera / photo-library usage descriptions** 🚨
+`ios/Runner/Info.plist` declares **neither** `NSCameraUsageDescription` nor
+`NSPhotoLibraryUsageDescription`, both required by `image_picker`. Without them,
+capturing a photo **crashes the app on iOS** — and that breaks *all three* uploads,
+since they share `ImagePickService`. The photo-library key is also App Store policy
+regardless of `requestFullMetadata`. Android needs no equivalent change: the plugin
+declares no `CAMERA` permission because it delegates to the system camera via
+`ACTION_IMAGE_CAPTURE` — which is exactly why this is invisible when testing on Android.
+
+### Components
+- `AppNetworkImage` (design system) — cached, skeleton loading, error + retry.
+- `DocCaptureSheet` — third source: file picker (PDF-capable).
+- Upload guard in `KycUploadController` / `ImagePickService`.
+- `ios/Runner/Info.plist` — camera + photo-library usage strings.
+
+### Endpoints
+No new endpoints. Unchanged contracts, re-consumed:
+`POST /users/me/avatar` · `POST /drivers/me/kyc/documents` · `GET /drivers/me/kyc/documents` ·
+`POST /drivers/me/vehicles/:id/photo`.
+
+### Known blocker (pre-existing, not caused by D9) 🚨
+The Android debug build currently fails at `:app:compileDevDebugJavaWithJavac`:
+
+```
+GeneratedPluginRegistrant.java: error: cannot find symbol
+  new dev.fluttercommunity.plus.packageinfo.PackageInfoPlugin()
+```
+
+**Verified pre-existing:** the same failure reproduces on a clean checkout of
+`9c45346` (D8) with no working-tree changes, so it is not D9 fallout.
+
+**Cause.** The project is on AGP **9.0.1** with `android.builtInKotlin=false`
+(`android/gradle.properties`). Several plugins gate on the AGP *major version alone*
+and skip applying `org.jetbrains.kotlin.android` when AGP ≥ 9 — without checking the
+`builtInKotlin` flag — so their Kotlin sources never compile. `package_info_plus`
+10.2.1 (latest; pulled in transitively via `geolocator_linux`) has this bug and no
+fixed release exists upstream. Flipping `android.builtInKotlin=true` does not work
+either: the app module itself applies `kotlin-android`, which AGP 9 then rejects.
+
+**Fix (own sprint — project-wide, outside D9's scope).** Migrate the app module to
+built-in Kotlin per
+[Flutter's guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin),
+then set `android.builtInKotlin=true`. Alternatively pin AGP < 9 until the affected
+plugins ship fixes.
+
+> `file_picker` had the *same* bug — that one D9 did fix, by pinning `12.0.0-beta.7`,
+> the first release that honours `android.builtInKotlin` on AGP 9. Revisit the pin when
+> stable 12.x ships.
+
+Until this is resolved, D9 is verified by `flutter analyze` (clean) and
+`flutter test` (77 passing, incl. new size-guard / PDF / cache-mode coverage);
+on-device verification of the acceptance list below is still outstanding.
+
+### Prerequisite
+Confirm the environment this build points at actually runs `STORAGE_PROVIDER=cloudinary`.
+Backend Sprint 11 keeps Supabase valid for backward compatibility and flips prod only
+after dev verification, so signed-URL expiry (task 1) may not reproduce yet. **Tasks 2–4
+are worth doing regardless of which provider is live.**
+
+### Acceptance
+- [ ] A KYC thumbnail whose signed URL has expired shows an error state and recovers on tap (verify by waiting out the 1h TTL or forcing a stale URL).
+- [ ] Reopening the KYC checklist refreshes document URLs rather than reusing stale ones.
+- [ ] Avatar / vehicle / doc images render from cache on second view — no repeat network fetch (verify in dio logs).
+- [x] Every image has a loading skeleton and an error state; no bare `Image.network` remains in `lib/` (verified by grep — the only one left is the deliberate uncached path *inside* `AppNetworkImage`).
+- [x] A >5MB file is rejected client-side with a clear message, before any upload starts (unit-tested: no draft saved, `uploadDocument` never called).
+- [x] The size check also runs on retry/resume, not only at pick time (unit-tested); a draft whose file the OS reclaimed is dropped with "capture it again" instead of retrying a dead path.
+- [x] A PDF picked from files uploads unchanged, skipping JPEG compression (unit-tested). PDF *thumbnail* rendering still needs an on-device check.
+- [ ] Cloudinary-transformed URLs (avatar 400×400 face-crop, vehicle 1024×768) render correctly at their display sizes.
+- [x] Both iOS usage-description strings are present in `ios/Runner/Info.plist`. Camera capture on an actual iOS device/simulator still needs verifying.
+- [ ] Signed-URL cache bypass holds: KYC docs never render through `CachedNetworkImage` (unit-tested), and no expired signature is replayed from disk on a real device.
+
+---
+
 ## 5. Definition of "sprint complete"
 
 1. Every screen in the sprint is built and navigable.
@@ -394,6 +545,7 @@ WS: `notification.received`, `payment.succeeded|failed`.
 - All money rendered from integer paise via one `formatPaise()` helper.
 - WS is a notifier, **REST is the truth** — always reconcile after reconnect.
 - Loading / empty / error states use the shared components — never a bare spinner.
+- Server images go through `AppNetworkImage` (D9) — never a bare `Image.network`. Treat any KYC document URL as short-lived: refetch, don't cache past its TTL.
 
 ## 7. Out of scope (driver app MVP)
 

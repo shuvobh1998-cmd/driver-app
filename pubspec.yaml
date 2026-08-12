@@ -50,6 +50,20 @@ dependencies:
   flutter_local_notifications: ^22.0.0
   image_picker: ^1.2.2
   flutter_image_compress: ^2.4.0
+  # Caches server images (Cloudinary CDN) so avatars/vehicle photos aren't
+  # refetched on every build. KYC docs are signed with a 1h TTL and are
+  # deliberately NOT cached — see AppNetworkImage (D9).
+  cached_network_image: ^3.4.1
+  # Lets a driver attach a PDF KYC document; the backend accepts
+  # application/pdf for KYC only (D9).
+  #
+  # Pinned to a 12.0.0 prerelease deliberately: 8.x compiles against android-34
+  # (manifest-merge failure against this project's compileSdk), and 11.0.3 skips
+  # applying the Kotlin plugin on AGP 9 without wiring built-in Kotlin, so its
+  # Kotlin sources never compile ("cannot find symbol FilePickerPlugin"). 12.x is
+  # the first release to handle `android.builtInKotlin` on AGP 9. Move to stable
+  # 12.x once it ships.
+  file_picker: 12.0.0-beta.7
   uuid: ^4.5.3
   intl: ^0.20.2
   # Lightweight key/value flags read synchronously after load (first-launch

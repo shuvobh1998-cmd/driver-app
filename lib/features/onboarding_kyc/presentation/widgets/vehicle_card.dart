@@ -112,17 +112,25 @@ class VehicleCard extends StatelessWidget {
 
   Widget _photo(BuildContext context, bool hasPhoto) {
     const size = 64.0;
+    // Vehicle photos are public Cloudinary URLs (w_1024,h_768,c_fit) — stable,
+    // so they cache normally.
+    if (hasPhoto) {
+      return AppNetworkImage(
+        url: vehicle.photoUrl!,
+        width: size,
+        height: size,
+        semanticLabel: 'Vehicle photo',
+      );
+    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppSpacing.sm),
       child: SizedBox(
         width: size,
         height: size,
-        child: hasPhoto
-            ? Image.network(vehicle.photoUrl!, fit: BoxFit.cover)
-            : Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Icon(Icons.directions_car_outlined),
-              ),
+        child: Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Icon(Icons.directions_car_outlined),
+        ),
       ),
     );
   }

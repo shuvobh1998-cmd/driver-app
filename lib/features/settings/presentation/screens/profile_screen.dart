@@ -237,7 +237,9 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
       children: [
         CircleAvatar(
           radius: 48,
-          backgroundImage: hasAvatar ? NetworkImage(p.avatarUrl!) : null,
+          backgroundImage: hasAvatar
+              ? appCachedImageProvider(p.avatarUrl!)
+              : null,
           child: hasAvatar ? null : const Icon(Icons.person, size: 48),
         ),
         Material(

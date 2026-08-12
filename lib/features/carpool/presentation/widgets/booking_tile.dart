@@ -34,7 +34,7 @@ class BookingTile extends StatelessWidget {
                 CircleAvatar(
                   backgroundImage:
                       (rider?.avatarUrl != null && rider!.avatarUrl!.isNotEmpty)
-                      ? NetworkImage(rider.avatarUrl!)
+                      ? appCachedImageProvider(rider.avatarUrl!)
                       : null,
                   child: (rider?.avatarUrl == null || rider!.avatarUrl!.isEmpty)
                       ? const Icon(Icons.person)

@@ -7,6 +7,7 @@ export 'colors.dart';
 export 'spacing.dart';
 export 'theme.dart';
 export 'typography.dart';
+export 'widgets/app_network_image.dart';
 export 'widgets/app_scaffold.dart';
 export 'widgets/app_text_field.dart';
 export 'widgets/empty_state.dart';

@@ -63,7 +63,7 @@ class _ThreadTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundImage:
             (thread.avatarUrl != null && thread.avatarUrl!.isNotEmpty)
-            ? NetworkImage(thread.avatarUrl!)
+            ? appCachedImageProvider(thread.avatarUrl!)
             : null,
         child: (thread.avatarUrl == null || thread.avatarUrl!.isEmpty)
             ? const Icon(Icons.person)

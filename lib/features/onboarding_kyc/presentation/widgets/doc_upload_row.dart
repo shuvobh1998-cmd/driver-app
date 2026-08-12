@@ -35,6 +35,7 @@ class DocUploadRow extends StatelessWidget {
     this.document,
     this.rejectedReason,
     this.onRemove,
+    this.onRefreshUrl,
   });
 
   final KycDocType docType;
@@ -52,6 +53,14 @@ class DocUploadRow extends StatelessWidget {
 
   /// Removes the uploaded document; null hides the remove action.
   final VoidCallback? onRemove;
+
+  /// Refetches the document list to obtain a freshly signed file URL.
+  ///
+  /// KYC documents are delivered through Cloudinary authenticated delivery with
+  /// a **1h signed-URL TTL**, so a thumbnail left on screen (or restored from a
+  /// backgrounded app) eventually 401s. The thumbnail's retry calls this so the
+  /// refetched URL replaces the expired one.
+  final VoidCallback? onRefreshUrl;
 
   _DocState get _resolved {
     switch (uploadState.phase) {
@@ -169,7 +178,15 @@ class DocUploadRow extends StatelessWidget {
 
     final doc = document;
     if (doc != null && !doc.isPdf) {
-      return box(Image.network(doc.fileUrl, fit: BoxFit.cover));
+      // Signed cache mode: never persist a URL that expires in an hour.
+      return AppNetworkImage(
+        url: doc.fileUrl,
+        width: size,
+        height: size,
+        cache: AppImageCache.signed,
+        onRetry: onRefreshUrl,
+        semanticLabel: '${docType.label} document',
+      );
     }
     if (doc != null && doc.isPdf) {
       return box(

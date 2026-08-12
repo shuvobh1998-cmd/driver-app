@@ -15,7 +15,11 @@ import '../widgets/kyc_status_badge.dart';
 /// The KYC document checklist: one [DocUploadRow] per supported doc type,
 /// each reflecting live `kyc/status` and the in-flight upload state. Aadhaar +
 /// DL are required; RC / Insurance / Permit are optional.
-class KycDocumentsScreen extends ConsumerWidget {
+///
+/// Stateful so it can refresh on resume: document `fileUrl`s are Cloudinary
+/// signed URLs with a 1h TTL, so a checklist left open in the background comes
+/// back with dead thumbnails unless the list is refetched.
+class KycDocumentsScreen extends ConsumerStatefulWidget {
   const KycDocumentsScreen({super.key});
 
   /// Display order: required first, then optional.
@@ -29,7 +33,32 @@ class KycDocumentsScreen extends ConsumerWidget {
 
   static const _defaultRequired = {KycDocType.aadhaar, KycDocType.dl};
 
-  Future<void> _refresh(WidgetRef ref) async {
+  @override
+  ConsumerState<KycDocumentsScreen> createState() => _KycDocumentsScreenState();
+}
+
+class _KycDocumentsScreenState extends ConsumerState<KycDocumentsScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Signed document URLs may have expired while backgrounded — refetch so the
+    // thumbnails render instead of silently 401ing.
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
+
+  Future<void> _refresh() async {
     ref.invalidate(kycStatusProvider);
     ref.invalidate(kycDocumentsProvider);
     await Future.wait([
@@ -39,22 +68,19 @@ class KycDocumentsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final status = ref.watch(kycStatusProvider);
     final docs = ref.watch(kycDocumentsProvider);
 
     return AppScaffold(
       title: 'Documents',
       body: switch ((status, docs)) {
-        (AsyncError(:final error), _) ||
-        (_, AsyncError(:final error)) => ErrorState(
-          message: messageForError(error),
-          onRetry: () => _refresh(ref),
-        ),
+        (AsyncError(:final error), _) || (_, AsyncError(:final error)) =>
+          ErrorState(message: messageForError(error), onRetry: _refresh),
         (AsyncData(value: final s), AsyncData(value: final d)) => _DocList(
           status: s,
           documents: d,
-          onRefresh: () => _refresh(ref),
+          onRefresh: _refresh,
         ),
         _ => const LoadingState(message: 'Loading your documents…'),
       },
@@ -190,6 +216,7 @@ class _DocList extends ConsumerWidget {
               onRemove: _docFor(type) == null
                   ? null
                   : () => _remove(context, ref, _docFor(type)!),
+              onRefreshUrl: () => ref.invalidate(kycDocumentsProvider),
             ),
           const SizedBox(height: AppSpacing.md),
         ],

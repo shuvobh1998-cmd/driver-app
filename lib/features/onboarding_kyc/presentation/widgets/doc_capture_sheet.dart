@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../design_system/design_system.dart';
+import '../../../../shared/utils/image_pick.dart';
 import '../../data/models/onboarding_enums.dart';
 
-/// What the capture sheet returns: the chosen image source plus an optional
+/// What the capture sheet returns: the chosen source plus an optional
 /// document number (for types that collect one).
-typedef DocCaptureResult = ({ImageSource source, String? docNumber});
+typedef DocCaptureResult = ({PickSource source, String? docNumber});
 
 /// Bottom sheet for capturing a KYC document: an optional document-number
-/// field (for Aadhaar/DL/PAN) and Camera / Gallery actions. The image is
-/// compressed by the caller's upload pipeline (≤1024px JPEG q80).
+/// field (for Aadhaar/DL/PAN) and Camera / Gallery / File actions. An image is
+/// compressed by the caller's upload pipeline (≤1024px JPEG q80); a PDF picked
+/// via "File" is uploaded as-is (the backend accepts `application/pdf` for KYC).
 class DocCaptureSheet extends StatefulWidget {
   const DocCaptureSheet({
     super.key,
@@ -62,7 +63,7 @@ class _DocCaptureSheetState extends State<DocCaptureSheet> {
     return v.isEmpty ? null : v;
   }
 
-  void _pick(ImageSource source) =>
+  void _pick(PickSource source) =>
       Navigator.pop(context, (source: source, docNumber: _docNumber));
 
   @override
@@ -91,7 +92,7 @@ class _DocCaptureSheetState extends State<DocCaptureSheet> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _pick(ImageSource.camera),
+                    onPressed: () => _pick(PickSource.camera),
                     icon: const Icon(Icons.photo_camera),
                     label: const Text('Camera'),
                   ),
@@ -99,12 +100,24 @@ class _DocCaptureSheetState extends State<DocCaptureSheet> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _pick(ImageSource.gallery),
+                    onPressed: () => _pick(PickSource.gallery),
                     icon: const Icon(Icons.photo_library),
                     label: const Text('Gallery'),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            OutlinedButton.icon(
+              onPressed: () => _pick(PickSource.file),
+              icon: const Icon(Icons.attach_file),
+              label: const Text('Choose a PDF or image file'),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Max 5MB. PDFs are uploaded as-is; photos are compressed.',
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.sm),
           ],

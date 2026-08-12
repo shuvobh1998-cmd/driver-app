@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../../shared/utils/failure_snackbar.dart';
+import '../../../../shared/utils/image_pick.dart';
 import '../../data/models/onboarding_enums.dart';
 import '../../data/onboarding_providers.dart';
 
@@ -70,23 +70,35 @@ class KycUploadController extends Notifier<Map<KycDocType, DocUploadState>> {
 
   void _set(KycDocType type, DocUploadState s) => state = {...state, type: s};
 
-  /// Captures a photo (or picks from gallery), saves it as a draft, then
-  /// uploads it. A cancelled picker is a no-op.
+  /// Captures a photo (or picks an image / PDF from the device), saves it as a
+  /// draft, then uploads it. A cancelled picker is a no-op.
   Future<void> captureAndUpload({
     required KycDocType docType,
-    required ImageSource source,
+    required PickSource source,
     String? docNumber,
   }) async {
     _set(docType, const DocUploadState(phase: UploadPhase.preparing));
     final String? path;
     try {
-      path = await ref.read(imagePickServiceProvider).pick(source);
+      path = await ref.read(imagePickServiceProvider).pickDocument(source);
+    } on FileTooLargeException catch (e) {
+      // Over the server's 5MB cap — surface the real reason rather than a
+      // generic read failure, since the fix (smaller file) is in the driver's
+      // hands.
+      _set(
+        docType,
+        DocUploadState(
+          phase: UploadPhase.error,
+          errorMessage: messageForError(e),
+        ),
+      );
+      return;
     } catch (_) {
       _set(
         docType,
         const DocUploadState(
           phase: UploadPhase.error,
-          errorMessage: 'Could not read that image. Try another.',
+          errorMessage: 'Could not read that file. Try another.',
         ),
       );
       return;
@@ -121,6 +133,28 @@ class KycUploadController extends Notifier<Map<KycDocType, DocUploadState>> {
     String path,
     String? docNumber,
   ) async {
+    // Re-check on every send, not just at pick time: `retry` and the
+    // resume-after-kill path reuse a saved draft path, and the OS can reclaim
+    // the temp directory that holds it while the app is away.
+    try {
+      await assertUploadable(path);
+    } catch (e) {
+      _set(
+        docType,
+        DocUploadState(
+          phase: UploadPhase.error,
+          // A vanished draft is unrecoverable — drop it so the row prompts a
+          // fresh capture instead of offering a retry that can never succeed.
+          draftPath: e is FileMissingException ? null : path,
+          errorMessage: messageForError(e),
+        ),
+      );
+      if (e is FileMissingException) {
+        await ref.read(kycDraftStoreProvider).remove(docType);
+      }
+      return;
+    }
+
     _set(
       docType,
       DocUploadState(

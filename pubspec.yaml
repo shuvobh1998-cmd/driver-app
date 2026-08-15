@@ -130,3 +130,13 @@ flutter_native_splash:
     image: assets/branding/splash_logo.png
     color_dark: "#121417"
     image_dark: assets/branding/splash_logo.png
+
+# Local fork of package_info_plus 10.2.1 with the AGP 9 Kotlin gate fixed.
+# Pulled in transitively by geolocator_linux, but it declares an Android
+# pluginClass, so Flutter registers it in the Android build — where upstream's
+# build.gradle.kts skips applying kotlin-android on AGP 9 and its Kotlin never
+# compiles ("cannot find symbol PackageInfoPlugin"). 10.2.1 is the latest
+# release and no upstream fix exists. Drop this override once one ships.
+dependency_overrides:
+  package_info_plus:
+    path: third_party/package_info_plus

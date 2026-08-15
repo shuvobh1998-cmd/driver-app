@@ -3,9 +3,13 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   # Generated code is excluded from analysis; the toolchain regenerates it.
+  # Vendored upstream packages are excluded too: they are third-party sources
+  # kept as close to upstream as possible, and were not written against this
+  # project's strict-casts / lint rules.
   exclude:
     - "lib/gen/**"
     - "lib/l10n/gen/**"
+    - "third_party/**"
     - "**/*.g.dart"
     - "**/*.freezed.dart"
   language:

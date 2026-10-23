@@ -111,26 +111,35 @@ void main() {
       '"status":"PENDING","requestedAt":"2026-06-04T10:00:00.000Z"}}',
     );
 
-    final payout = await api.requestPayout(amount: 50000);
+    final payout = await api.requestPayout(
+      amount: 50000,
+      idempotencyKey: 'key-1',
+    );
 
     expect(adapter.lastRequest?.path, '/drivers/me/payouts/request');
+    expect(adapter.lastRequest?.headers['Idempotency-Key'], 'key-1');
     final data = adapter.lastRequest?.data as Map<String, dynamic>;
     expect(data['amount'], 50000);
     expect(data.containsKey('notes'), isFalse);
     expect(payout.status, PayoutStatus.pending);
   });
 
-  test('cashCollected posts to the trip payment path', () async {
-    final (api, adapter) = _apiWith(
-      '{"success":true,"data":{"id":"pay_1","tripId":"trp_1","method":"CASH",'
-      '"amount":12550,"commission":1255,"gst":628,"driverEarning":10667,'
-      '"currency":"INR","status":"PAID","createdAt":"2026-06-04T10:04:30.000Z"}}',
-    );
+  test(
+    'cashCollected posts to the trip payment path with the caller key',
+    () async {
+      final (api, adapter) = _apiWith(
+        '{"success":true,"data":{"id":"pay_1","tripId":"trp_1","method":"CASH",'
+        '"amount":12550,"commission":1255,"gst":628,"driverEarning":10667,'
+        '"currency":"INR","status":"PAID","createdAt":"2026-06-04T10:04:30.000Z"}}',
+      );
 
-    final payment = await api.cashCollected('trp_1');
+      final payment = await api.cashCollected('trp_1', idempotencyKey: 'key-1');
 
-    expect(adapter.lastRequest?.method, 'POST');
-    expect(adapter.lastRequest?.path, '/trips/trp_1/payment/cash-collected');
-    expect(payment.platformCut, 1255 + 628);
-  });
+      expect(adapter.lastRequest?.method, 'POST');
+      expect(adapter.lastRequest?.path, '/trips/trp_1/payment/cash-collected');
+      // The caller's key, so a retry of the same tap replays the first result.
+      expect(adapter.lastRequest?.headers['Idempotency-Key'], 'key-1');
+      expect(payment.platformCut, 1255 + 628);
+    },
+  );
 }

@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/network/api_envelope.dart';
+import '../../../core/network/interceptors/idempotency_interceptor.dart';
 import 'models/earnings_enums.dart';
 import 'models/earnings_summary.dart';
 import 'models/invoice.dart';
@@ -15,9 +16,10 @@ import 'models/payout_method.dart';
 import 'models/wallet.dart';
 
 /// Transport over the driver earnings, wallet and payout endpoints (D5). Money
-/// in every payload is integer **paise**. State-changing POSTs (cash-collected,
-/// payout request) carry an `Idempotency-Key` automatically via the interceptor,
-/// so a retried tap settles exactly once.
+/// in every payload is integer **paise**. The two money writes (cash-collected,
+/// payout request) take the caller's `Idempotency-Key`: one key per user
+/// action, reused when that action is retried, so a retry after a lost response
+/// replays the first result instead of settling (or paying out) twice.
 class EarningsApi {
   EarningsApi(this._dio);
 
@@ -85,26 +87,37 @@ class EarningsApi {
 
   /// Requests a withdrawal of [amount] paise. Errors: `INSUFFICIENT_BALANCE`,
   /// `PAYOUT_METHOD_REQUIRED`.
-  Future<Payout> requestPayout({required int amount, String? notes}) async {
+  Future<Payout> requestPayout({
+    required int amount,
+    required String idempotencyKey,
+    String? notes,
+  }) async {
     final res = await _dio.post<dynamic>(
       '/drivers/me/payouts/request',
       data: {
         'amount': amount,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
       },
+      options: _idempotent(idempotencyKey),
     );
     return res.unwrap(Payout.fromJson);
   }
 
-  /// Closes a finished CASH trip: debits commission + GST from the wallet. The
-  /// idempotency key makes a repeated tap safe (`ALREADY_*` guarded server-side).
-  Future<Payment> cashCollected(String tripId) async {
+  /// Closes a finished CASH trip: debits commission + GST from the wallet.
+  Future<Payment> cashCollected(
+    String tripId, {
+    required String idempotencyKey,
+  }) async {
     final res = await _dio.post<dynamic>(
       '/trips/$tripId/payment/cash-collected',
       data: const <String, dynamic>{},
+      options: _idempotent(idempotencyKey),
     );
     return res.unwrap(Payment.fromJson);
   }
+
+  static Options _idempotent(String key) =>
+      Options(headers: {IdempotencyInterceptor.header: key});
 
   /// The trip's tax invoice as structured JSON line items.
   Future<Invoice> invoice(String tripId) async {

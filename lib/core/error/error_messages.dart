@@ -20,6 +20,8 @@ const Map<String, String> kErrorMessages = {
   'SERVICE_UNAVAILABLE':
       'Service is temporarily unavailable. Try again shortly.',
   'FORCE_UPDATE_REQUIRED': 'Please update the app to continue.',
+  'IDEMPOTENCY_KEY_REUSED_DIFFERENT_BODY':
+      'Something went wrong. Please try again.',
   // Auth (D1):
   'INVALID_CREDENTIALS': 'Incorrect phone or password.',
   'USER_NOT_FOUND': 'No account found for this phone number.',

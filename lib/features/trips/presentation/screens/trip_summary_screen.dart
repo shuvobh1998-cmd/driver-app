@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../design_system/design_system.dart';
@@ -158,6 +159,10 @@ class _CashCollectCardState extends ConsumerState<_CashCollectCard> {
   bool _busy = false;
   bool _done = false;
 
+  /// Reused across retries so a tap after a lost response replays the first
+  /// settlement instead of debiting the wallet again.
+  final String _idempotencyKey = const Uuid().v4();
+
   bool get _alreadyPaid => widget.trip.paymentStatus == PaymentStatus.paid;
 
   Future<void> _collect() async {
@@ -165,7 +170,7 @@ class _CashCollectCardState extends ConsumerState<_CashCollectCard> {
     try {
       final payment = await ref
           .read(earningsApiProvider)
-          .cashCollected(widget.trip.publicId);
+          .cashCollected(widget.trip.publicId, idempotencyKey: _idempotencyKey);
       // Refresh the money surfaces the close affects.
       ref
         ..invalidate(walletProvider)

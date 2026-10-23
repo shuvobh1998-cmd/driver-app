@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../design_system/design_system.dart';
@@ -29,6 +30,13 @@ class _RequestPayoutScreenState extends ConsumerState<RequestPayoutScreen> {
   final _amount = TextEditingController();
   bool _submitting = false;
 
+  /// One `Idempotency-Key` per withdrawal attempt: reused while the driver
+  /// retries the same amount (so a retry after a lost response can't pay out
+  /// twice), replaced when the amount changes (a reused key with a different
+  /// body is rejected).
+  String? _idempotencyKey;
+  int? _keyAmount;
+
   @override
   void dispose() {
     _amount.dispose();
@@ -47,9 +55,15 @@ class _RequestPayoutScreenState extends ConsumerState<RequestPayoutScreen> {
 
     final rupees = double.parse(_amount.text.trim());
     final paise = (rupees * 100).round();
+    if (_keyAmount != paise) {
+      _idempotencyKey = const Uuid().v4();
+      _keyAmount = paise;
+    }
     setState(() => _submitting = true);
     try {
-      await ref.read(earningsApiProvider).requestPayout(amount: paise);
+      await ref
+          .read(earningsApiProvider)
+          .requestPayout(amount: paise, idempotencyKey: _idempotencyKey!);
       ref.invalidate(walletProvider);
       await ref.read(payoutsControllerProvider.notifier).refresh();
       if (!mounted) return;

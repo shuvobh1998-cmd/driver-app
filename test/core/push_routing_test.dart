@@ -1,4 +1,7 @@
 import 'package:driver_app/app/deep_links.dart';
+import 'package:driver_app/app/push_router.dart';
+import 'package:driver_app/core/push/push_service.dart';
+import 'package:driver_app/features/trips/data/models/trip_offer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -22,5 +25,44 @@ void main() {
       expect(appRouteForDeepLink('/nope'), isNull);
       expect(appRouteForDeepLink(null), isNull);
     });
+  });
+
+  group('flattenPushData', () {
+    test('decodes the stringified FCM data into a parseable offer', () {
+      final expiresAt = DateTime.now()
+          .toUtc()
+          .add(const Duration(seconds: 10))
+          .toIso8601String();
+      final data = flattenPushData({
+        'type': 'TRIP_OFFERED',
+        'deepLink': '/driver/offer/off_1',
+        'data':
+            '{"rideRequestId":"req_1","vehicleType":"AUTO",'
+            '"pickup":{"lat":22.5,"lng":88.3},"expiresAt":"$expiresAt"}',
+      });
+
+      // offerId is recovered from the deep link.
+      final offer = TripOffer.tryParse(data);
+      expect(offer?.offerId, 'off_1');
+      expect(offer?.pickup.lat, 22.5);
+      expect(offer?.isExpired, isFalse);
+    });
+
+    test('keeps plain string fields as they are', () {
+      final data = flattenPushData({
+        'type': 'PAYOUT_PROCESSED',
+        'title': 'Paid',
+      });
+      expect(data['title'], 'Paid');
+      expect(data['offerId'], isNull);
+    });
+  });
+
+  test('decodePushPayload round-trips and rejects junk', () {
+    expect(decodePushPayload('{"type":"CHAT_MESSAGE"}'), {
+      'type': 'CHAT_MESSAGE',
+    });
+    expect(decodePushPayload('not json'), isNull);
+    expect(decodePushPayload(null), isNull);
   });
 }

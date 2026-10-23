@@ -7,6 +7,7 @@ import '../features/settings/presentation/controllers/locale_controller.dart';
 import '../features/trips/presentation/widgets/trip_offer_gate.dart';
 import '../l10n/gen/app_localizations.dart';
 import 'force_update_gate.dart';
+import 'push_router.dart';
 import 'router/app_router.dart';
 
 /// Root widget: a [MaterialApp.router] wired to the design-system themes
@@ -19,6 +20,8 @@ class DriverApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final locale = ref.watch(localeControllerProvider);
+    // Opens the screen a tapped push points at (for the whole session).
+    ref.watch(pushRouterProvider);
 
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,

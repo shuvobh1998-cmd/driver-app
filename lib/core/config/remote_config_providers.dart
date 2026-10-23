@@ -28,6 +28,36 @@ bool isUpdateRequired(
   return compareSemver(current, min) < 0;
 }
 
+/// True when the platform's `latestVersion` is newer than the running build —
+/// an optional update, offered without blocking (see [isUpdateRequired] for
+/// the blocking case).
+bool isUpdateAvailable(
+  AppRemoteConfig config, {
+  String current = kAppVersion,
+  String? platform,
+}) {
+  final latest = (platform ?? appPlatform) == 'ios'
+      ? config.latestVersion.ios
+      : config.latestVersion.android;
+  if (latest == null || latest.isEmpty) return false;
+  return compareSemver(current, latest) < 0;
+}
+
+/// Whether to show the optional "new version available" hint: a newer build
+/// exists and the driver hasn't dismissed the hint this session.
+class OptionalUpdateNotice extends Notifier<bool> {
+  @override
+  bool build() {
+    final config = ref.watch(appRemoteConfigProvider).value;
+    return config != null && isUpdateAvailable(config);
+  }
+
+  void dismiss() => state = false;
+}
+
+final optionalUpdateNoticeProvider =
+    NotifierProvider<OptionalUpdateNotice, bool>(OptionalUpdateNotice.new);
+
 /// Compares dotted numeric versions. Returns <0, 0, >0 like [Comparable].
 int compareSemver(String a, String b) {
   final pa = a.split('.').map((p) => int.tryParse(p) ?? 0).toList();

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/config/remote_config_providers.dart';
 import '../../../../core/core_providers.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../l10n/gen/app_localizations.dart';
@@ -332,6 +334,7 @@ class _ControlPanel extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const _UpdateAvailableHint(),
               Row(
                 children: [
                   const _EarningsChip(),
@@ -388,6 +391,43 @@ class _EarningsChip extends ConsumerWidget {
       label: Text(label),
       visualDensity: VisualDensity.compact,
       onPressed: () => context.push(Routes.earnings),
+    );
+  }
+}
+
+/// Optional-update nudge: shown when `/app/config` advertises a newer
+/// `latestVersion` (the blocking case is handled by the force-update gate).
+/// Dismissed for the rest of the session with the close button.
+class _UpdateAvailableHint extends ConsumerWidget {
+  const _UpdateAvailableHint();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(optionalUpdateNoticeProvider)) {
+      return const SizedBox.shrink();
+    }
+    final store = appPlatform == 'ios' ? 'App Store' : 'Play Store';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          const Icon(Icons.system_update, color: AppColors.info, size: 20),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              'A new version of the app is available on the $store.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          IconButton(
+            tooltip: 'Dismiss',
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: () =>
+                ref.read(optionalUpdateNoticeProvider.notifier).dismiss(),
+          ),
+        ],
+      ),
     );
   }
 }

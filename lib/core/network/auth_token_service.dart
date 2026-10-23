@@ -72,7 +72,11 @@ class AuthTokenService {
 
   /// Refreshes the access token, coalescing concurrent callers into one network
   /// call. Returns `true` on success (tokens rotated), `false` when there is no
-  /// refresh token or the backend rejects it.
+  /// refresh token or the backend rejects it (the session is dead).
+  ///
+  /// Throws the [DioException] when the backend can't answer (timeout, no
+  /// connection, 5xx): that says nothing about the token, so callers must not
+  /// sign the driver out for it.
   Future<bool> refresh() => _inflight ??= _refresh().whenComplete(() {
     _inflight = null;
   });
@@ -94,8 +98,10 @@ class AuthTokenService {
       if (access == null || refresh == null) return false;
       await setTokens(accessToken: access, refreshToken: refresh);
       return true;
-    } on DioException {
-      return false;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 400 || status == 401 || status == 403) return false;
+      rethrow;
     }
   }
 

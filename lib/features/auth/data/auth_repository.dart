@@ -110,7 +110,8 @@ class AuthRepository {
 
   /// Restores a session on launch: if a refresh token exists, mint a fresh
   /// access token then load the user. Returns null when there's no live
-  /// session (no stored token, or refresh rejected).
+  /// session (no stored token, or refresh rejected). Throws, keeping the
+  /// stored token, when the server can't be reached.
   Future<AuthUser?> restoreSession() async {
     final refreshToken = await tokens.readRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) return null;

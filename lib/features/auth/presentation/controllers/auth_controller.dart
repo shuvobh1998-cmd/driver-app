@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/network_providers.dart';
@@ -42,14 +43,23 @@ class AuthController extends Notifier<AuthState> {
     return const AuthState.unknown();
   }
 
-  /// Restores a persisted session on launch. Always resolves [state] away from
-  /// `unknown`, so the splash can route.
+  /// Restores a persisted session on launch, resolving [state] away from
+  /// `unknown` so the splash can route.
+  ///
+  /// When the server can't be reached (no signal, or the dev backend still
+  /// waking up) the stored session may be perfectly valid, so [state] stays
+  /// `unknown` and the error is rethrown for the splash to offer a retry —
+  /// a slow first call never signs the driver out.
   Future<void> restore() async {
     try {
       final user = await _repo.restoreSession();
       state = user == null
           ? const AuthState.unauthenticated()
           : AuthState.authenticated(user);
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == null || status >= 500) rethrow;
+      state = const AuthState.unauthenticated();
     } catch (_) {
       state = const AuthState.unauthenticated();
     }

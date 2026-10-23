@@ -4,8 +4,9 @@ import '../auth_token_service.dart';
 
 /// On `401 TOKEN_EXPIRED`, refreshes the access token once (single-flight,
 /// owned by [AuthTokenService]) and replays the failed request with the new
-/// token. A failed refresh forces a sign-out and bubbles the error so the app
-/// kicks the driver to login.
+/// token. A rejected refresh forces a sign-out and bubbles the error so the app
+/// kicks the driver to login; an unreachable server keeps the session and
+/// surfaces the network error instead.
 ///
 /// [QueuedInterceptor] serializes concurrent 401s, so a burst of expired
 /// requests triggers only one refresh.
@@ -38,7 +39,13 @@ class RefreshInterceptor extends QueuedInterceptor {
       return;
     }
 
-    final refreshed = await _tokens.refresh();
+    final bool refreshed;
+    try {
+      refreshed = await _tokens.refresh();
+    } on DioException catch (e) {
+      handler.next(e);
+      return;
+    }
     if (!refreshed) {
       _tokens.forceSignOut();
       handler.next(err);

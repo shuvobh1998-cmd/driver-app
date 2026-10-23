@@ -7,7 +7,8 @@ import '../controllers/auth_controller.dart';
 
 /// First screen on launch. Checks the force-update gate, then restores any
 /// persisted session. The router holds here (auth stays `unknown`) until
-/// restore resolves, then redirects to home or login.
+/// restore resolves, then redirects to home or login. If the server can't be
+/// reached the session is kept and the driver gets a retry, not the login.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,6 +18,7 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
   bool _updateRequired = false;
+  bool _unreachable = false;
 
   @override
   void initState() {
@@ -37,7 +39,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     } catch (_) {
       // ignore — proceed to restore.
     }
-    await ref.read(authControllerProvider.notifier).restore();
+    try {
+      await ref.read(authControllerProvider.notifier).restore();
+    } catch (_) {
+      if (mounted) setState(() => _unreachable = true);
+    }
+  }
+
+  void _retry() {
+    setState(() {
+      _updateRequired = false;
+      _unreachable = false;
+    });
+    ref.invalidate(appRemoteConfigProvider);
+    _init();
   }
 
   @override
@@ -48,12 +63,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Padding(
           padding: AppSpacing.screen,
           child: _updateRequired
-              ? _UpdateRequiredView(
-                  onRetry: () {
-                    setState(() => _updateRequired = false);
-                    ref.invalidate(appRemoteConfigProvider);
-                    _init();
-                  },
+              ? _UpdateRequiredView(onRetry: _retry)
+              : _unreachable
+              ? EmptyState(
+                  icon: Icons.cloud_off,
+                  title: 'Can\'t reach the server',
+                  message:
+                      'Check your connection and try again. You\'re still '
+                      'signed in.',
+                  actionLabel: 'Retry',
+                  onAction: _retry,
                 )
               : Center(
                   child: Column(

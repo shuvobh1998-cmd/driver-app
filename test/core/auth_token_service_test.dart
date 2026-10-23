@@ -31,6 +31,22 @@ class _StubAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+/// Simulates the sleeping dev backend: every call times out.
+class _TimeoutAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => throw DioException.connectionTimeout(
+    timeout: const Duration(seconds: 60),
+    requestOptions: options,
+  );
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
 
@@ -71,6 +87,41 @@ void main() {
       refreshDio: _stubDio(null, ResponseBody.fromString('{}', 200)),
     );
     expect(await service.refresh(), isFalse);
+  });
+
+  test('a rejected refresh (401) reports a dead session', () async {
+    final store = SecureTokenStore();
+    await store.writeRefreshToken('old-refresh');
+    final service = AuthTokenService(
+      apiBaseUrl: 'https://example.test',
+      store: store,
+      refreshDio: _stubDio(
+        null,
+        ResponseBody.fromString(
+          '{"success":false,"error":{"code":"UNAUTHENTICATED"}}',
+          401,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        ),
+      ),
+    );
+    expect(await service.refresh(), isFalse);
+  });
+
+  test('an unreachable server throws and keeps the stored session', () async {
+    final store = SecureTokenStore();
+    await store.writeRefreshToken('old-refresh');
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'))
+      ..httpClientAdapter = _TimeoutAdapter();
+    final service = AuthTokenService(
+      apiBaseUrl: 'https://example.test',
+      store: store,
+      refreshDio: dio,
+    );
+
+    await expectLater(service.refresh(), throwsA(isA<DioException>()));
+    expect(await store.readRefreshToken(), 'old-refresh');
   });
 
   test('forceSignOut clears the access token and emits an event', () async {

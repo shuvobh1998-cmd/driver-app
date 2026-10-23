@@ -105,6 +105,9 @@ class _SummaryBody extends StatelessWidget {
           if (trip.paymentMethod == PaymentMethod.cash) ...[
             const SizedBox(height: AppSpacing.md),
             _CashCollectCard(trip: trip),
+          ] else if (trip.paymentMethod != PaymentMethod.unknown) ...[
+            const SizedBox(height: AppSpacing.md),
+            _OnlinePaymentCard(trip: trip),
           ],
           const SizedBox(height: AppSpacing.md),
           Card(
@@ -138,6 +141,36 @@ class _SummaryBody extends StatelessWidget {
         style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
         onPressed: onDone,
         child: const Text('Done'),
+      ),
+    );
+  }
+}
+
+/// UPI / card trips are paid in the rider's app — there's nothing to call
+/// here. The card flips to paid when `payment.succeeded` lands (the realtime
+/// coordinator reconciles the trip); the earning is credited to the wallet.
+class _OnlinePaymentCard extends StatelessWidget {
+  const _OnlinePaymentCard({required this.trip});
+
+  final Trip trip;
+
+  @override
+  Widget build(BuildContext context) {
+    final paid = trip.paymentStatus == PaymentStatus.paid;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: paid ? AppColors.success.withValues(alpha: 0.08) : null,
+      child: ListTile(
+        leading: paid
+            ? const Icon(Icons.check_circle, color: AppColors.success)
+            : const Icon(Icons.hourglass_top),
+        title: Text(paid ? 'Paid online' : 'Waiting for the rider to pay'),
+        subtitle: Text(
+          paid
+              ? 'Your earning has been credited to your wallet.'
+              : 'The rider pays ${formatPaise(trip.displayFare)} in their '
+                    'app. No cash to collect.',
+        ),
       ),
     );
   }

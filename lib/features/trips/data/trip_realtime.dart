@@ -19,7 +19,8 @@ import 'models/trip_offer.dart';
 /// - `trip.offered` → [TripOfferController.present] (the offer gate then shows
 ///   the full-screen takeover).
 /// - `trip.status.changed` / `trip.driver.arrived` / `trip.completed` /
-///   `trip.cancelled` → [ActiveTripController.reconcile] (REST is the truth).
+///   `trip.cancelled` / `payment.succeeded` → [ActiveTripController.reconcile]
+///   (REST is the truth).
 /// - On every (re)connect → reconcile the active trip and the driver state,
 ///   since events may have been missed while the socket was down.
 class TripRealtimeCoordinator {
@@ -45,6 +46,7 @@ class TripRealtimeCoordinator {
     'trip.driver.arrived',
     'trip.completed',
     'trip.cancelled',
+    'payment.succeeded',
   ];
 
   /// Registers the event handlers and begins watching auth, connecting and

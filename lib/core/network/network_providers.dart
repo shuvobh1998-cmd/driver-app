@@ -24,5 +24,22 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(
     config: ref.watch(appConfigProvider),
     tokenService: ref.watch(authTokenServiceProvider),
+    onForceUpdate: () => ref.read(forceUpdateRequiredProvider.notifier).raise(),
   );
 });
+
+/// True once any call has answered `426 FORCE_UPDATE_REQUIRED`. The app root
+/// shows a blocking update screen over everything while it's set.
+class ForceUpdateRequired extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void raise() => state = true;
+
+  /// Lets the driver retry (e.g. after updating); the next 426 raises it again.
+  void dismiss() => state = false;
+}
+
+final forceUpdateRequiredProvider = NotifierProvider<ForceUpdateRequired, bool>(
+  ForceUpdateRequired.new,
+);

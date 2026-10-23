@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/force_update_gate.dart';
 import '../../../../core/config/remote_config_providers.dart';
 import '../../../../design_system/design_system.dart';
 import '../controllers/auth_controller.dart';
@@ -63,7 +64,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Padding(
           padding: AppSpacing.screen,
           child: _updateRequired
-              ? _UpdateRequiredView(onRetry: _retry)
+              ? UpdateRequiredView(onRetry: _retry)
               : _unreachable
               ? EmptyState(
                   icon: Icons.cloud_off,
@@ -90,25 +91,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 ),
         ),
       ),
-    );
-  }
-}
-
-class _UpdateRequiredView extends StatelessWidget {
-  const _UpdateRequiredView({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return EmptyState(
-      icon: Icons.system_update,
-      title: 'Update required',
-      message:
-          'A newer version of the Driver app is needed to continue. Please '
-          'update from the Play Store, then reopen the app.',
-      actionLabel: 'I\'ve updated',
-      onAction: onRetry,
     );
   }
 }

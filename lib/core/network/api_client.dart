@@ -5,16 +5,19 @@ import 'api_defaults.dart';
 import 'auth_token_service.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
+import 'interceptors/force_update_interceptor.dart';
 import 'interceptors/idempotency_interceptor.dart';
 import 'interceptors/refresh_interceptor.dart';
 
 /// The app's single HTTP entrypoint. Wraps a configured [Dio] with the
 /// interceptor stack agreed in the plan:
-///   auth (token attach) → idempotency → refresh (401 retry) → error (normalize).
+///   auth (token attach) → idempotency → refresh (401 retry) → force-update
+///   (426) → error (normalize).
 class ApiClient {
   ApiClient({
     required AppConfig config,
     required AuthTokenService tokenService,
+    void Function()? onForceUpdate,
     Dio? dio,
   }) : dio = dio ?? Dio() {
     final refresh = RefreshInterceptor(tokenService);
@@ -31,6 +34,7 @@ class ApiClient {
         AuthInterceptor(() => tokenService.accessToken),
         IdempotencyInterceptor(),
         refresh,
+        ForceUpdateInterceptor(onForceUpdate ?? () {}),
         const ErrorInterceptor(),
       ]);
     // The refresh interceptor replays the original request on the same client.

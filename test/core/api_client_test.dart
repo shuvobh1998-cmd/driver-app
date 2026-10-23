@@ -85,6 +85,28 @@ void main() {
     expect(headers['X-App-Platform'], 'android');
   });
 
+  test('a 426 raises the force-update gate', () async {
+    final adapter = _StubAdapter(
+      '{"success":false,"error":{"code":"FORCE_UPDATE_REQUIRED"}}',
+      426,
+    );
+    var raised = false;
+    final client = ApiClient(
+      config: _config,
+      tokenService: _tokens(SecureTokenStore(), adapter),
+      onForceUpdate: () => raised = true,
+      dio: Dio()..httpClientAdapter = adapter,
+    );
+
+    final error = await _errorOf(client.dio.get<dynamic>('/auth/me'));
+
+    expect(raised, isTrue);
+    expect(
+      ((error! as DioException).error! as AppFailure).code,
+      'FORCE_UPDATE_REQUIRED',
+    );
+  });
+
   test('an expired call whose refresh times out keeps the session', () async {
     final store = SecureTokenStore();
     await store.writeRefreshToken('r');

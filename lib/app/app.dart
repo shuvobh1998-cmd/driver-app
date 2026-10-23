@@ -6,6 +6,7 @@ import '../design_system/theme.dart';
 import '../features/settings/presentation/controllers/locale_controller.dart';
 import '../features/trips/presentation/widgets/trip_offer_gate.dart';
 import '../l10n/gen/app_localizations.dart';
+import 'force_update_gate.dart';
 import 'router/app_router.dart';
 
 /// Root widget: a [MaterialApp.router] wired to the design-system themes
@@ -28,9 +29,11 @@ class DriverApp extends ConsumerWidget {
       locale: locale,
       routerConfig: router,
       // Keeps the realtime coordinator alive and pushes the full-screen trip
-      // offer over any screen the moment one arrives.
-      builder: (context, child) =>
-          TripOfferGate(child: child ?? const SizedBox.shrink()),
+      // offer over any screen the moment one arrives; a 426 from any call
+      // covers everything with the blocking update screen.
+      builder: (context, child) => ForceUpdateGate(
+        child: TripOfferGate(child: child ?? const SizedBox.shrink()),
+      ),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

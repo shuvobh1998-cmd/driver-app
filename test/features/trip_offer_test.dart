@@ -1,8 +1,25 @@
+import 'package:dio/dio.dart';
 import 'package:driver_app/features/onboarding_kyc/data/models/onboarding_enums.dart';
+import 'package:driver_app/features/trips/data/models/trip.dart';
 import 'package:driver_app/features/trips/data/models/trip_enums.dart';
 import 'package:driver_app/features/trips/data/models/trip_offer.dart';
+import 'package:driver_app/features/trips/data/trips_api.dart';
+import 'package:driver_app/features/trips/data/trips_providers.dart';
+import 'package:driver_app/features/trips/presentation/controllers/trip_offer_controller.dart';
 import 'package:driver_app/features/trips/presentation/widgets/next_action_button.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockApi extends Mock implements TripsApi {}
+
+DioException _httpError(int status) {
+  final options = RequestOptions(path: '/drivers/me/trip-offers/off_1/accept');
+  return DioException(
+    requestOptions: options,
+    response: Response(requestOptions: options, statusCode: status),
+  );
+}
 
 void main() {
   group('TripOffer.tryParse', () {
@@ -91,6 +108,56 @@ void main() {
       expect(TripStatus.ended.isTerminal, isTrue);
       expect(TripStatus.cancelled.isTerminal, isTrue);
       expect(TripStatus.started.isTerminal, isFalse);
+    });
+  });
+
+  group('TripOfferController.accept', () {
+    late _MockApi api;
+
+    ProviderContainer containerWithOffer() {
+      final c = ProviderContainer(
+        overrides: [tripsApiProvider.overrideWithValue(api)],
+      );
+      addTearDown(c.dispose);
+      final now = DateTime.now().toUtc();
+      c
+          .read(tripOfferControllerProvider.notifier)
+          .present(
+            TripOffer(
+              offerId: 'off_1',
+              rideRequestId: 'req_1',
+              vehicleType: VehicleType.auto,
+              pickup: const TripPlace(lat: 1, lng: 2),
+              distanceMeters: 850,
+              expiresAt: now.add(const Duration(seconds: 15)),
+              receivedAt: now,
+            ),
+          );
+      return c;
+    }
+
+    setUp(() => api = _MockApi());
+
+    test('a 409 (offer gone) clears the offer', () async {
+      when(() => api.acceptOffer('off_1')).thenThrow(_httpError(409));
+      final c = containerWithOffer();
+
+      await expectLater(
+        c.read(tripOfferControllerProvider.notifier).accept(),
+        throwsA(isA<DioException>()),
+      );
+      expect(c.read(tripOfferControllerProvider), isNull);
+    });
+
+    test('any other failure keeps the offer for a retry', () async {
+      when(() => api.acceptOffer('off_1')).thenThrow(_httpError(500));
+      final c = containerWithOffer();
+
+      await expectLater(
+        c.read(tripOfferControllerProvider.notifier).accept(),
+        throwsA(isA<DioException>()),
+      );
+      expect(c.read(tripOfferControllerProvider)?.offerId, 'off_1');
     });
   });
 }

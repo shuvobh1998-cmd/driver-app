@@ -52,6 +52,10 @@ const Map<String, String> kErrorMessages = {
   'INSUFFICIENT_BALANCE': 'Your wallet balance is too low for this payout.',
   'PAYOUT_METHOD_REQUIRED': 'Add a payout method before withdrawing.',
   'ALREADY_RATED': 'You have already rated this trip.',
+  // Trip offers (D4) — every 409 on accept means the offer is gone:
+  'TRIP_ALREADY_ACCEPTED': 'Another driver took this ride.',
+  'OFFER_EXPIRED': 'This offer has expired.',
+  'OFFER_NOT_ACCEPTABLE': 'This ride is no longer available.',
   // Earnings & payouts (D5):
   'PAYMENT_ALREADY_COLLECTED': 'This trip is already settled.',
   'CASH_ALREADY_COLLECTED': 'This trip is already settled.',

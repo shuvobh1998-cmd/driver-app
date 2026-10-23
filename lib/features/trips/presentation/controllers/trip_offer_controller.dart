@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/trip.dart';
@@ -25,14 +26,22 @@ class TripOfferController extends Notifier<TripOffer?> {
   void clear() => state = null;
 
   /// Accepts the pending offer. On success the active trip is loaded from REST
-  /// (the source of truth) and the offer is cleared. Throws on failure with the
-  /// offer left in place so the screen can show the error and retry.
+  /// (the source of truth) and the offer is cleared. Throws on failure. A `409`
+  /// (another driver won, the offer expired, or the rider cancelled) also
+  /// clears the offer — it's gone and there's nothing to retry; any other
+  /// failure leaves it in place so the screen can show the error and retry.
   Future<AcceptOfferResult> accept() async {
     final offer = state;
     if (offer == null) {
       throw StateError('No pending offer to accept.');
     }
-    final result = await ref.read(tripsApiProvider).acceptOffer(offer.offerId);
+    final AcceptOfferResult result;
+    try {
+      result = await ref.read(tripsApiProvider).acceptOffer(offer.offerId);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 409) state = null;
+      rethrow;
+    }
     await ref.read(activeTripControllerProvider.notifier).loadCurrent();
     state = null;
     return result;

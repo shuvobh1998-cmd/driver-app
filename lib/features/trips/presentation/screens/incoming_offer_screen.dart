@@ -42,8 +42,13 @@ class _IncomingOfferScreenState extends ConsumerState<IncomingOfferScreen> {
       if (mounted) context.pushReplacement(Routes.activeTrip);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _answering = false);
       context.showErrorSnack(e);
+      // A 409 cleared the offer (it's gone): leave the takeover, stay online.
+      if (ref.read(tripOfferControllerProvider) == null) {
+        if (context.canPop()) context.pop();
+        return;
+      }
+      setState(() => _answering = false);
     }
   }
 

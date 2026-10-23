@@ -58,17 +58,21 @@ void main() {
         dio,
       ).registerDeviceToken(fcmToken: 'tok_1', platform: 'ANDROID');
       expect(adapter.lastRequest?.method, 'POST');
-      expect(adapter.lastRequest?.path, '/users/me/device-tokens');
+      expect(adapter.lastRequest?.path, '/notifications/device-tokens');
       final sent = adapter.lastRequest?.data as Map;
       expect(sent['fcmToken'], 'tok_1');
       expect(sent['platform'], 'ANDROID');
       expect(sent.containsKey('deviceInfo'), isFalse);
     });
 
-    test('unregisterDeviceToken sends the token in the DELETE body', () async {
+    test('unregisterDeviceToken posts the token to /unregister', () async {
       final (dio, adapter) = _dioWith('{"success":true,"data":null}');
       await NotificationsApi(dio).unregisterDeviceToken('tok_1');
-      expect(adapter.lastRequest?.method, 'DELETE');
+      expect(adapter.lastRequest?.method, 'POST');
+      expect(
+        adapter.lastRequest?.path,
+        '/notifications/device-tokens/unregister',
+      );
       expect((adapter.lastRequest?.data as Map)['fcmToken'], 'tok_1');
     });
   });

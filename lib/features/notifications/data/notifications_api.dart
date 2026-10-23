@@ -57,7 +57,7 @@ class NotificationsApi {
     Map<String, dynamic>? deviceInfo,
   }) async {
     await _dio.post<dynamic>(
-      '/users/me/device-tokens',
+      '/notifications/device-tokens',
       data: {
         'fcmToken': fcmToken,
         'platform': platform,
@@ -68,8 +68,8 @@ class NotificationsApi {
 
   /// Unregisters an FCM token (on sign-out).
   Future<void> unregisterDeviceToken(String fcmToken) async {
-    await _dio.delete<dynamic>(
-      '/users/me/device-tokens',
+    await _dio.post<dynamic>(
+      '/notifications/device-tokens/unregister',
       data: {'fcmToken': fcmToken},
     );
   }

@@ -35,8 +35,8 @@ class _BecomeDriverScreenState extends ConsumerState<BecomeDriverScreen> {
     setState(() => _working = true);
     try {
       final api = ref.read(driverApiProvider);
-      // Both calls are idempotent on the backend — safe if already a driver.
-      await api.upgradeToDriver();
+      // Creates the profile and adds the DRIVER role; idempotent, so safe if
+      // already a driver.
       await api.createProfile();
       await ref.read(authControllerProvider.notifier).refreshUser();
       ref.invalidate(driverProfileProvider);

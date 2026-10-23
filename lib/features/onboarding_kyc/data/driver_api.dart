@@ -2,33 +2,23 @@ import 'package:dio/dio.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../core/network/api_envelope.dart';
-import '../../auth/data/models/user_profile.dart';
 import 'models/driver_profile.dart';
 import 'models/kyc_document.dart';
 import 'models/kyc_status_summary.dart';
 import 'models/onboarding_enums.dart';
 import 'models/vehicle.dart';
 
-/// Transport over the `/users/me/upgrade-to-driver` and `/drivers/me/*`
-/// onboarding endpoints (driver profile, KYC documents, vehicles). Returns
-/// typed models; error normalization is handled by the interceptor stack.
+/// Transport over the `/drivers/me/*` onboarding endpoints (driver profile,
+/// KYC documents, vehicles). Returns typed models; error normalization is
+/// handled by the interceptor stack.
 class DriverApi {
   DriverApi(this._dio);
 
   final Dio _dio;
 
-  /// Adds the DRIVER role to the signed-in user. Returns the updated profile.
-  /// Sends an empty JSON object: the client sets a JSON content-type on every
-  /// request, and the backend rejects a JSON content-type with an empty body.
-  Future<UserProfile> upgradeToDriver() async {
-    final res = await _dio.post<dynamic>(
-      '/users/me/upgrade-to-driver',
-      data: const <String, dynamic>{},
-    );
-    return res.unwrap(UserProfile.fromJson);
-  }
-
   // ── Driver profile ──────────────────────────────────────────────────────
+  /// Creates the driver profile **and** adds the `DRIVER` role. Idempotent:
+  /// a second call returns the existing profile.
   Future<DriverProfile> createProfile({
     String? emergencyContactName,
     String? emergencyContactPhone,

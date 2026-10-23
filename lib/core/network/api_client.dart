@@ -20,8 +20,8 @@ class ApiClient {
     final refresh = RefreshInterceptor(tokenService);
     this.dio
       ..options.baseUrl = config.apiBaseUrl
-      ..options.connectTimeout = const Duration(seconds: 15)
-      ..options.receiveTimeout = const Duration(seconds: 20)
+      ..options.connectTimeout = kApiTimeout
+      ..options.receiveTimeout = kApiTimeout
       // No global Content-Type: Dio's ImplyContentTypeInterceptor sets it per
       // request — application/json for map bodies, multipart/form-data for file
       // uploads, and none for bodyless requests. A hard-coded application/json

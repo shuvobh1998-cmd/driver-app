@@ -4,7 +4,8 @@ import 'package:json_annotation/json_annotation.dart';
 part 'app_notification.g.dart';
 
 /// An in-app notification (`GET /notifications`, `POST /notifications/:id/read`).
-/// [deepLink] is an internal route path the inbox can navigate to on tap;
+/// [deepLink] is the backend's path (e.g. `/driver/wallet`), mapped to an app
+/// route with `appRouteForDeepLink` when the inbox row is tapped;
 /// [data] carries the raw FCM payload for screens that need extra ids.
 @JsonSerializable(createToJson: false)
 class AppNotification {

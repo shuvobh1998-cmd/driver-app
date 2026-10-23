@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/deep_links.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../shared/extensions/date_extensions.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
@@ -43,10 +44,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   void _open(AppNotification n) {
     ref.read(notificationsControllerProvider.notifier).markRead(n.id);
-    final link = n.deepLink;
-    if (link != null && link.startsWith('/')) {
-      context.push(link);
-    }
+    final route = appRouteForDeepLink(n.deepLink);
+    if (route != null) context.push(route);
   }
 
   @override

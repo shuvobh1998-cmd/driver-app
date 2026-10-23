@@ -143,7 +143,8 @@ class DriverApi {
   Future<void> deleteVehicle(String id) =>
       _dio.delete<dynamic>('/drivers/me/vehicles/$id');
 
-  Future<Vehicle> uploadVehiclePhoto({
+  /// Uploads (or replaces) the vehicle photo and returns its permanent URL.
+  Future<String> uploadVehiclePhoto({
     required String id,
     required String filePath,
     void Function(double progress)? onProgress,
@@ -161,6 +162,7 @@ class DriverApi {
         if (total > 0) onProgress?.call(sent / total);
       },
     );
-    return res.unwrap(Vehicle.fromJson);
+    // `{ photoUrl, key }` — not a full vehicle; callers reload the list.
+    return res.unwrap((j) => j['photoUrl'] as String);
   }
 }

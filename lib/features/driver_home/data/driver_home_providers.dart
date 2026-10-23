@@ -2,17 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../core/core_providers.dart';
 import '../../../core/network/network_providers.dart';
 import 'driver_state_api.dart';
-import 'location_ping_store.dart';
 
 final driverStateApiProvider = Provider<DriverStateApi>(
   (ref) => DriverStateApi(ref.watch(apiClientProvider).dio),
-);
-
-final locationPingStoreProvider = Provider<LocationPingStore>(
-  (ref) => LocationPingStore(ref.watch(appDatabaseProvider)),
 );
 
 /// Where to first center the home map: the last known device fix if we have

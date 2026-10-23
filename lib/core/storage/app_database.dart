@@ -7,15 +7,6 @@ import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-/// Queued location pings — buffered while the network is down and flushed on
-/// reconnect (D3), so no "online" ping is lost.
-class LocationPings extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  RealColumn get lat => real()();
-  RealColumn get lng => real()();
-  DateTimeColumn get recordedAt => dateTime()();
-}
-
 /// Draft KYC uploads — lets a dropped upload resume instead of starting over
 /// (D2). One row per (docType) in flight.
 class KycDrafts extends Table {
@@ -28,14 +19,25 @@ class KycDrafts extends Table {
   Set<Column> get primaryKey => {docType};
 }
 
-/// Minimal local DB — only the two places offline actually matters. Keep it
-/// small; everything else is server-truth.
-@DriftDatabase(tables: [LocationPings, KycDrafts])
+/// Minimal local DB — only where offline actually matters. Keep it small;
+/// everything else is server-truth.
+@DriftDatabase(tables: [KycDrafts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _open());
 
+  /// v2 dropped the `location_pings` replay queue: the server matches on the
+  /// latest position, so stale fixes were worse than none.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await customStatement('DROP TABLE IF EXISTS location_pings');
+      }
+    },
+  );
 
   static QueryExecutor _open() {
     return LazyDatabase(() async {

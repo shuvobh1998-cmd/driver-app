@@ -1,12 +1,12 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/core_providers.dart';
 import '../../../../core/location/live_location_service.dart';
 import '../../data/driver_home_providers.dart';
 import '../../data/driver_state_api.dart';
-import '../../data/location_ping_store.dart';
 import '../../data/models/driver_state.dart';
 
 /// Single source of truth for the driver's online/offline/on-trip state and the
@@ -14,13 +14,13 @@ import '../../data/models/driver_state.dart';
 ///
 /// **WS is a notifier, REST is the truth:** every transition reconciles against
 /// the [DriverState] the server returns. Pings flow every ~5s from
-/// [LiveLocationService]; a ping that fails to POST is queued in
-/// [LocationPingStore] and replayed (oldest-first) after the next success, so a
-/// network blip never drops a fix.
+/// [LiveLocationService]. A ping lost to a network blip is not replayed: the
+/// server matches on the latest position, so the next tick's fresher fix is
+/// what it needs. A ping the server refuses (e.g. the driver was swept offline
+/// after 90 s without one) triggers a state re-sync so the UI shows the truth.
 class DriverHomeController extends AsyncNotifier<DriverState> {
   DriverStateApi get _api => ref.read(driverStateApiProvider);
   LiveLocationService get _location => ref.read(liveLocationServiceProvider);
-  LocationPingStore get _queue => ref.read(locationPingStoreProvider);
 
   StreamSubscription<LocationSample>? _pumpSub;
   bool _reporting = false;
@@ -64,17 +64,14 @@ class DriverHomeController extends AsyncNotifier<DriverState> {
   }
 
   /// Goes offline: stops the pump first so no ping races the transition, then
-  /// reconciles with the server. Queued pings are dropped — they are stale once
-  /// the driver is no longer available.
+  /// reconciles with the server.
   Future<void> goOffline() async {
     final transition = ref.read(driverTransitioningProvider.notifier);
     transition.set(true);
     try {
       state = await AsyncValue.guard(() async {
         await _stopPump();
-        final next = await _api.goOffline();
-        await _queue.clear();
-        return next;
+        return _api.goOffline();
       });
     } finally {
       transition.set(false);
@@ -122,26 +119,15 @@ class DriverHomeController extends AsyncNotifier<DriverState> {
           state.value?.location?.lat != next.location?.lat) {
         state = AsyncData(next);
       }
-      await _flushQueue();
+    } on DioException catch (e) {
+      // No response = network blip: drop it, the next tick sends a fresh fix.
+      // A response means the server refused the ping — usually because we're
+      // no longer ONLINE — so re-sync (which stops the pump if we're offline).
+      if (e.response != null) await refresh().catchError((_) {});
     } catch (_) {
-      // Network blip: buffer the fix to replay on the next success.
-      await _queue.enqueue(lat: s.lat, lng: s.lng, recordedAt: s.recordedAt);
+      // Never let a ping failure escape the stream listener.
     } finally {
       _reporting = false;
-    }
-  }
-
-  /// Replays buffered pings oldest-first, stopping at the first failure so the
-  /// remainder stays queued for the next attempt.
-  Future<void> _flushQueue() async {
-    final pending = await _queue.pending();
-    for (final p in pending) {
-      try {
-        await _api.reportLocation(lat: p.lat, lng: p.lng);
-        await _queue.remove(p.id);
-      } catch (_) {
-        break;
-      }
     }
   }
 }

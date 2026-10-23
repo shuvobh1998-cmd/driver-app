@@ -1,12 +1,10 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:driver_app/core/core_providers.dart';
-import 'package:driver_app/core/error/app_failure.dart';
 import 'package:driver_app/core/location/live_location_service.dart';
-import 'package:driver_app/core/storage/app_database.dart';
 import 'package:driver_app/features/driver_home/data/driver_home_providers.dart';
 import 'package:driver_app/features/driver_home/data/driver_state_api.dart';
-import 'package:driver_app/features/driver_home/data/location_ping_store.dart';
 import 'package:driver_app/features/driver_home/data/models/driver_state.dart';
 import 'package:driver_app/features/driver_home/presentation/controllers/driver_home_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,32 +39,6 @@ class _FakeLocation implements LiveLocationService {
   void emit(LocationSample s) => _controller.add(s);
 }
 
-/// In-memory ping queue mirroring [LocationPingStore], no sqlite needed.
-class _FakeQueue implements LocationPingStore {
-  final List<LocationPing> _rows = [];
-  int _nextId = 1;
-
-  @override
-  Future<void> enqueue({
-    required double lat,
-    required double lng,
-    required DateTime recordedAt,
-  }) async {
-    _rows.add(
-      LocationPing(id: _nextId++, lat: lat, lng: lng, recordedAt: recordedAt),
-    );
-  }
-
-  @override
-  Future<List<LocationPing>> pending() async => List.of(_rows);
-
-  @override
-  Future<void> remove(int id) async => _rows.removeWhere((r) => r.id == id);
-
-  @override
-  Future<void> clear() async => _rows.clear();
-}
-
 DriverState _state(DriverStatus status) => DriverState(status: status);
 
 LocationSample _sample(double lat) =>
@@ -75,14 +47,12 @@ LocationSample _sample(double lat) =>
 void main() {
   late _MockApi api;
   late _FakeLocation location;
-  late _FakeQueue queue;
 
   ProviderContainer makeContainer() {
     final c = ProviderContainer(
       overrides: [
         driverStateApiProvider.overrideWithValue(api),
         liveLocationServiceProvider.overrideWithValue(location),
-        locationPingStoreProvider.overrideWithValue(queue),
       ],
     );
     addTearDown(c.dispose);
@@ -92,7 +62,6 @@ void main() {
   setUp(() {
     api = _MockApi();
     location = _FakeLocation();
-    queue = _FakeQueue();
     when(
       () => api.getState(),
     ).thenAnswer((_) async => _state(DriverStatus.offline));
@@ -114,47 +83,80 @@ void main() {
     expect(location.isRunning, isTrue);
   });
 
+  void stubPings(Future<DriverState> Function(double lat) answer) {
+    when(
+      () => api.reportLocation(
+        lat: any(named: 'lat'),
+        lng: any(named: 'lng'),
+        speed: any(named: 'speed'),
+        bearing: any(named: 'bearing'),
+      ),
+    ).thenAnswer((inv) => answer(inv.namedArguments[#lat] as double));
+  }
+
+  test('a ping lost to a network blip is dropped, not replayed', () async {
+    when(
+      () => api.goOnline(any()),
+    ).thenAnswer((_) async => _state(DriverStatus.online));
+    final sent = <double>[];
+    stubPings((lat) async {
+      sent.add(lat);
+      // The very first ping fails with no response (network blip).
+      if (sent.length == 1) {
+        throw DioException.connectionError(
+          requestOptions: RequestOptions(path: '/drivers/me/location'),
+          reason: 'offline',
+        );
+      }
+      return _state(DriverStatus.online);
+    });
+
+    final c = makeContainer();
+    await c.read(driverHomeControllerProvider.future);
+    await c.read(driverHomeControllerProvider.notifier).goOnline('veh_1');
+
+    location.emit(_sample(1));
+    await pumpEventQueue();
+    location.emit(_sample(2));
+    await pumpEventQueue();
+
+    // Only the fresh fix follows the failure — the stale one never resurfaces
+    // to put the driver back where they were.
+    expect(sent, [1, 2]);
+    expect(location.isRunning, isTrue);
+  });
+
   test(
-    'a failed ping is queued, then flushed after the next success',
+    'a refused ping re-syncs and stops the pump once swept offline',
     () async {
       when(
         () => api.goOnline(any()),
       ).thenAnswer((_) async => _state(DriverStatus.online));
-
-      var calls = 0;
-      when(
-        () => api.reportLocation(
-          lat: any(named: 'lat'),
-          lng: any(named: 'lng'),
-          speed: any(named: 'speed'),
-          bearing: any(named: 'bearing'),
-        ),
-      ).thenAnswer((_) async {
-        calls++;
-        // The very first ping fails (network blip); everything after succeeds.
-        if (calls == 1) {
-          throw const AppFailure(code: 'NETWORK', message: 'No internet.');
-        }
-        return _state(DriverStatus.online);
+      stubPings((_) async {
+        final options = RequestOptions(path: '/drivers/me/location');
+        throw DioException(
+          requestOptions: options,
+          response: Response(requestOptions: options, statusCode: 409),
+        );
       });
 
       final c = makeContainer();
       await c.read(driverHomeControllerProvider.future);
       await c.read(driverHomeControllerProvider.notifier).goOnline('veh_1');
 
-      // First ping fails → buffered.
+      // The server swept us offline (90 s without a ping) and refuses the next.
       location.emit(_sample(1));
       await pumpEventQueue();
-      expect((await queue.pending()).length, 1);
 
-      // Next ping succeeds → it reports AND drains the buffered one.
-      location.emit(_sample(2));
-      await pumpEventQueue();
-      expect(await queue.pending(), isEmpty);
+      expect(
+        c.read(driverHomeControllerProvider).value?.status,
+        DriverStatus.offline,
+      );
+      expect(location.isRunning, isFalse);
     },
   );
 
-  test('goOffline stops streaming and clears the queue', () async {
+  test('goOffline stops streaming', () async {
     when(
       () => api.goOnline(any()),
     ).thenAnswer((_) async => _state(DriverStatus.online));
@@ -165,8 +167,6 @@ void main() {
     final c = makeContainer();
     await c.read(driverHomeControllerProvider.future);
     await c.read(driverHomeControllerProvider.notifier).goOnline('veh_1');
-
-    await queue.enqueue(lat: 1, lng: 1, recordedAt: DateTime.utc(2026));
     await c.read(driverHomeControllerProvider.notifier).goOffline();
 
     expect(
@@ -174,7 +174,6 @@ void main() {
       DriverStatus.offline,
     );
     expect(location.isRunning, isFalse);
-    expect(await queue.pending(), isEmpty);
   });
 
   test('on relaunch while server says ONLINE, the pump resumes', () async {

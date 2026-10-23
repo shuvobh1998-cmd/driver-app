@@ -41,6 +41,12 @@ const Map<String, String> kErrorMessages = {
   'CURRENT_PASSWORD_INVALID': 'Your current password is incorrect.',
   'ACCOUNT_SUSPENDED': 'This account is suspended. Contact support.',
   'ACCOUNT_BANNED': 'This account has been banned. Contact support.',
+  'ACCOUNT_DELETION_PENDING':
+      'This account is scheduled for deletion. Contact support to keep it.',
+  'PASSWORD_NOT_SET':
+      'No password is set for this account yet. Tap "Forgot password?" to '
+      'set one.',
+  'OTP_TOO_MANY': 'Too many codes requested. Try again in 10 minutes.',
   'PHONE_VERIFICATION_UNAVAILABLE':
       'Phone verification is not set up on this build yet.',
   // Seeded for later sprints so the keys are discoverable:
@@ -56,6 +62,12 @@ const Map<String, String> kErrorMessages = {
   'TRIP_ALREADY_ACCEPTED': 'Another driver took this ride.',
   'OFFER_EXPIRED': 'This offer has expired.',
   'OFFER_NOT_ACCEPTABLE': 'This ride is no longer available.',
+  'DRIVER_OFFLINE': "You're offline. Go online and try again.",
+  'TRIP_NOT_CANCELABLE': 'This trip can no longer be cancelled.',
+  // Carpool & chat (D6):
+  'INSUFFICIENT_SEATS': 'Not enough seats left on this trip.',
+  'TRIP_FULL': 'This trip is fully booked.',
+  'CHAT_NOT_ALLOWED': 'You can only message riders booked on your trip.',
   // Earnings & payouts (D5):
   'PAYMENT_ALREADY_COLLECTED': 'This trip is already settled.',
   'CASH_ALREADY_COLLECTED': 'This trip is already settled.',
@@ -63,6 +75,7 @@ const Map<String, String> kErrorMessages = {
   'INVALID_AMOUNT': 'Enter a valid amount.',
   'PAYOUT_PENDING': 'You already have a payout being processed.',
   'INVALID_PAYOUT_METHOD': 'Check your payout details and try again.',
+  'PAYMENT_FAILED': "The payment didn't go through.",
 };
 
 /// Resolves a user-facing message for an `error.code`, falling back to the

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +9,11 @@ import 'app_config.dart';
 import 'app_remote_config.dart';
 
 /// Fetches `GET /app/config` (force-update flag, support contacts, legal links).
+/// Cached for 6 h, then re-fetched so a driver who stays online all day still
+/// picks up a new minimum / latest version.
 final appRemoteConfigProvider = FutureProvider<AppRemoteConfig>((ref) async {
+  final refresh = Timer(const Duration(hours: 6), ref.invalidateSelf);
+  ref.onDispose(refresh.cancel);
   final dio = ref.watch(apiClientProvider).dio;
   final Response<dynamic> res = await dio.get<dynamic>('/app/config');
   return res.unwrap(AppRemoteConfig.fromJson);

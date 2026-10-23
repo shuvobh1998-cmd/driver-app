@@ -22,6 +22,9 @@ class _FakeLocation implements LiveLocationService {
   Stream<LocationSample> get samples => _controller.stream;
 
   @override
+  Stream<LocationSample> get fixes => const Stream.empty();
+
+  @override
   bool get isRunning => _running;
 
   @override

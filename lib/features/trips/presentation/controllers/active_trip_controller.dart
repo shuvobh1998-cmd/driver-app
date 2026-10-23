@@ -15,8 +15,9 @@ import '../../data/trips_providers.dart';
 /// lifecycle actions, each of which reconciles against the [Trip] the server
 /// returns.
 ///
-/// While the trip is active the controller mirrors the location pump's samples
-/// onto the socket as `trip.location`, so the rider sees the driver move. **WS is
+/// While the trip is active the controller mirrors live location fixes onto the
+/// socket as `trip.location` (~every 3 s), so the rider sees the driver move.
+/// **WS is
 /// a notifier, REST is the truth:** [reconcile] re-fetches over REST whenever a
 /// `trip.*` event lands or the socket reconnects.
 class ActiveTripController extends AsyncNotifier<Trip?> {
@@ -24,6 +25,11 @@ class ActiveTripController extends AsyncNotifier<Trip?> {
   DriverSocket get _socket => ref.read(driverSocketProvider);
 
   StreamSubscription<LocationSample>? _locSub;
+  DateTime? _lastEmit;
+
+  /// The server drops `trip.location` faster than one per 2 s; fixes closer
+  /// together than this are skipped (iOS can deliver one a second).
+  static const _minEmitGap = Duration(milliseconds: 2500);
 
   @override
   Future<Trip?> build() async {
@@ -102,14 +108,14 @@ class ActiveTripController extends AsyncNotifier<Trip?> {
     return id;
   }
 
-  /// Starts or stops mirroring location samples to `trip.location`, matching
+  /// Starts or stops mirroring location fixes to `trip.location`, matching
   /// whether a trip is currently active. The pump itself (online/offline) is
   /// owned by the home controller; this only forwards while a trip is live.
   void _syncStreaming(Trip? trip) {
     final active = trip != null && trip.status.isActive;
     if (active && _locSub == null) {
       final location = ref.read(liveLocationServiceProvider);
-      _locSub = location.samples.listen(_emitLocation);
+      _locSub = location.fixes.listen(_emitLocation);
     } else if (!active && _locSub != null) {
       _locSub!.cancel();
       _locSub = null;
@@ -119,6 +125,10 @@ class ActiveTripController extends AsyncNotifier<Trip?> {
   void _emitLocation(LocationSample s) {
     final trip = state.value;
     if (trip == null || !trip.status.isActive) return;
+    final now = DateTime.now();
+    final last = _lastEmit;
+    if (last != null && now.difference(last) < _minEmitGap) return;
+    _lastEmit = now;
     _socket.emit('trip.location', {
       'tripId': trip.publicId,
       'lat': s.lat,

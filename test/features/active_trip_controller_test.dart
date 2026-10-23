@@ -37,7 +37,9 @@ class _FakeLocation implements LiveLocationService {
   final _controller = StreamController<LocationSample>.broadcast();
 
   @override
-  Stream<LocationSample> get samples => _controller.stream;
+  Stream<LocationSample> get samples => const Stream.empty();
+  @override
+  Stream<LocationSample> get fixes => _controller.stream;
   @override
   bool get isRunning => true;
   @override
@@ -128,7 +130,7 @@ void main() {
     expect(c.read(hasActiveTripProvider), isFalse);
   });
 
-  test('streams location samples as trip.location while active', () async {
+  test('streams location fixes as trip.location while active', () async {
     final api = _MockApi();
     when(api.currentTrip).thenAnswer((_) async => _trip(TripStatus.started));
     final socket = _SpySocket();
@@ -146,6 +148,24 @@ void main() {
     expect(event, 'trip.location');
     expect((data! as Map)['tripId'], 'trp_1');
     expect((data as Map)['lat'], 9.0);
+  });
+
+  test('throttles trip.location under the server rate limit', () async {
+    final api = _MockApi();
+    when(api.currentTrip).thenAnswer((_) async => _trip(TripStatus.started));
+    final socket = _SpySocket();
+    final loc = _FakeLocation();
+    final c = _container(api, socket, loc);
+    await c.read(activeTripControllerProvider.future);
+
+    // Two fixes back to back (iOS can deliver one a second): only the first
+    // goes out, the second would be dropped server-side anyway.
+    loc.emit(LocationSample(lat: 1, lng: 1, recordedAt: DateTime.utc(2026)));
+    loc.emit(LocationSample(lat: 2, lng: 2, recordedAt: DateTime.utc(2026)));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(socket.emitted, hasLength(1));
+    expect((socket.emitted.single.$2! as Map)['lat'], 1);
   });
 
   test('clear resets to no active trip', () async {

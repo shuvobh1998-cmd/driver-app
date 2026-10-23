@@ -28,12 +28,19 @@ class LocationSample {
 /// A position [Stream] keeps a fresh fix (and powers the foreground service);
 /// a separate periodic timer emits a [LocationSample] every [pingInterval] from
 /// the latest fix, so pings keep a steady cadence even while stationary.
+/// [fixes] forwards every raw fix (~[fixInterval]) for the faster live
+/// `trip.location` stream the rider's map follows.
 class LiveLocationService {
   LiveLocationService();
 
   static const Duration pingInterval = Duration(seconds: 5);
 
+  /// How often the OS is asked for a fresh fix.
+  static const Duration fixInterval = Duration(seconds: 3);
+
   final StreamController<LocationSample> _samples =
+      StreamController<LocationSample>.broadcast();
+  final StreamController<LocationSample> _fixes =
       StreamController<LocationSample>.broadcast();
   StreamSubscription<Position>? _positionSub;
   Timer? _timer;
@@ -41,6 +48,10 @@ class LiveLocationService {
 
   /// Samples at roughly [pingInterval] while the service is running.
   Stream<LocationSample> get samples => _samples.stream;
+
+  /// Every fix as the OS delivers it — about every [fixInterval] on Android,
+  /// often faster on iOS, so consumers throttle to their own cadence.
+  Stream<LocationSample> get fixes => _fixes.stream;
 
   bool get isRunning => _timer != null;
 
@@ -59,9 +70,11 @@ class LiveLocationService {
   /// Begins streaming. Idempotent: a second call while running is a no-op.
   Future<void> start() async {
     if (isRunning) return;
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: _settings(),
-    ).listen((p) => _last = p, onError: (_) {});
+    _positionSub = Geolocator.getPositionStream(locationSettings: _settings())
+        .listen((p) {
+          _last = p;
+          _fixes.add(_toSample(p));
+        }, onError: (_) {});
 
     // Seed an immediate fix so the first ping doesn't wait a whole interval.
     try {
@@ -84,28 +97,29 @@ class LiveLocationService {
   void dispose() {
     stop();
     _samples.close();
+    _fixes.close();
   }
 
   void _emit() {
     final p = _last;
     if (p == null) return;
-    _samples.add(
-      LocationSample(
-        lat: p.latitude,
-        lng: p.longitude,
-        speed: p.speed.isFinite ? p.speed : null,
-        bearing: p.heading.isFinite ? p.heading : null,
-        recordedAt: DateTime.now().toUtc(),
-      ),
-    );
+    _samples.add(_toSample(p));
   }
+
+  static LocationSample _toSample(Position p) => LocationSample(
+    lat: p.latitude,
+    lng: p.longitude,
+    speed: p.speed.isFinite ? p.speed : null,
+    bearing: p.heading.isFinite ? p.heading : null,
+    recordedAt: DateTime.now().toUtc(),
+  );
 
   LocationSettings _settings() {
     if (Platform.isAndroid) {
       return AndroidSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 0,
-        intervalDuration: pingInterval,
+        intervalDuration: fixInterval,
         // Keeps location flowing while backgrounded and shows the required
         // ongoing notification (acceptance: pings continue when backgrounded).
         foregroundNotificationConfig: const ForegroundNotificationConfig(

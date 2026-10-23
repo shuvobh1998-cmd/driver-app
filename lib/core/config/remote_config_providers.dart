@@ -15,9 +15,15 @@ final appRemoteConfigProvider = FutureProvider<AppRemoteConfig>((ref) async {
 
 /// True when the running build is older than the platform's minimum supported
 /// version, or the backend has flipped the hard `forceUpdate` flag.
-bool isUpdateRequired(AppRemoteConfig config, {String current = kAppVersion}) {
+bool isUpdateRequired(
+  AppRemoteConfig config, {
+  String current = kAppVersion,
+  String? platform,
+}) {
   if (config.forceUpdate) return true;
-  final min = config.minSupportedVersion.android;
+  final min = (platform ?? appPlatform) == 'ios'
+      ? config.minSupportedVersion.ios
+      : config.minSupportedVersion.android;
   if (min == null || min.isEmpty) return false;
   return compareSemver(current, min) < 0;
 }

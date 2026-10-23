@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../config/app_config.dart';
+import 'api_defaults.dart';
 import 'auth_token_service.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
@@ -25,6 +26,7 @@ class ApiClient {
       // request — application/json for map bodies, multipart/form-data for file
       // uploads, and none for bodyless requests. A hard-coded application/json
       // broke multipart uploads and bodyless POSTs (empty-body 400s).
+      ..options.headers.addAll(appRequestHeaders())
       ..interceptors.addAll([
         AuthInterceptor(() => tokenService.accessToken),
         IdempotencyInterceptor(),

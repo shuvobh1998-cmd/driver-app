@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 
 import '../storage/secure_token_store.dart';
+import 'api_defaults.dart';
 
 /// Owns the live session tokens and the single-flight refresh.
 ///
@@ -31,7 +32,10 @@ class AuthTokenService {
                baseUrl: apiBaseUrl,
                connectTimeout: const Duration(seconds: 15),
                receiveTimeout: const Duration(seconds: 20),
-               headers: {'Content-Type': 'application/json'},
+               headers: {
+                 'Content-Type': 'application/json',
+                 ...appRequestHeaders(),
+               },
              ),
            );
 

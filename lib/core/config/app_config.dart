@@ -1,3 +1,15 @@
+import 'package:flutter/foundation.dart';
+
+/// Current build's marketing version, sent as `X-App-Version` (strict `x.y.z`)
+/// and compared against `/app/config`'s `minSupportedVersion`. Keep it in step
+/// with the part of `pubspec.yaml`'s `version` before the `+`.
+const String kAppVersion = '1.0.0';
+
+/// The platform the backend keys app versions by: the `X-App-Platform` header
+/// and the `android` / `ios` fields of `/app/config`'s version objects.
+String get appPlatform =>
+    defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+
 /// The build flavor. Selected by the entrypoint (`main_dev` / `main_staging`
 /// / `main_prod`) and surfaced through [AppConfig].
 enum AppFlavor { dev, staging, prod }

@@ -29,6 +29,14 @@ class FareBreakdownView extends StatelessWidget {
         _Row(label: 'Time', value: formatPaise(b.timeFare)),
         _Row(label: 'Platform fee', value: formatPaise(b.platformFee)),
         _Row(label: 'GST', value: formatPaise(b.gst)),
+        if (b.hasPromo) ...[
+          if (b.subtotal != null)
+            _Row(label: 'Subtotal', value: formatPaise(b.subtotal!)),
+          _Row(
+            label: 'Promo discount',
+            value: '− ${formatPaise(b.promoDiscount!)}',
+          ),
+        ],
         const Divider(height: AppSpacing.lg),
         _Row(
           label: 'Total fare',

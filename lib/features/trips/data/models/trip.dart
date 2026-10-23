@@ -33,6 +33,8 @@ class FareBreakdown {
     required this.platformFee,
     required this.gst,
     required this.total,
+    this.promoDiscount,
+    this.subtotal,
   });
 
   final int baseFare;
@@ -41,6 +43,13 @@ class FareBreakdown {
   final int platformFee;
   final int gst;
   final int total;
+
+  /// Present only when the rider used a promo: [subtotal] is the fare before
+  /// the discount, [total] the amount after it.
+  final int? promoDiscount;
+  final int? subtotal;
+
+  bool get hasPromo => (promoDiscount ?? 0) > 0;
 
   factory FareBreakdown.fromJson(Map<String, dynamic> json) =>
       _$FareBreakdownFromJson(json);

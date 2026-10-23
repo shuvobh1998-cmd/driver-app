@@ -46,6 +46,33 @@ void main() {
       expect(offer.secondsLeft, greaterThan(0));
     });
 
+    test('reads addresses and notes nested like the trip', () {
+      final offer = TripOffer.tryParse({
+        'offerId': 'off_1',
+        'pickup': {'lat': 22.5, 'lng': 88.3, 'address': 'Park Street'},
+        'drop': {'lat': 22.6, 'lng': 88.4, 'address': 'Sector V'},
+        'notes': 'Bring helmet',
+      })!;
+
+      expect(offer.pickup.address, 'Park Street');
+      expect(offer.dropAddress, 'Sector V');
+      expect(offer.notes, 'Bring helmet');
+    });
+
+    test('reads addresses flat like the ride request', () {
+      final offer = TripOffer.tryParse({
+        'offerId': 'off_1',
+        'pickup': {'lat': 22.5, 'lng': 88.3},
+        'pickupAddress': 'Park Street',
+        'dropAddress': 'Sector V',
+        'notes': '   ',
+      })!;
+
+      expect(offer.pickup.address, 'Park Street');
+      expect(offer.dropAddress, 'Sector V');
+      expect(offer.notes, isNull, reason: 'blank notes are not shown');
+    });
+
     test('returns null when offerId or pickup is missing', () {
       expect(
         TripOffer.tryParse({

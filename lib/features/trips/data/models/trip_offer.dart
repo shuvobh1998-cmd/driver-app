@@ -3,8 +3,9 @@ import 'trip.dart';
 
 /// An incoming trip offer pushed over the socket as `trip.offered`:
 /// `{ offerId, rideRequestId, vehicleType, pickup: { lat, lng }, distanceMeters,
-/// expiresAt }`. This is a notification only — the authoritative trip is fetched
-/// over REST once the offer is accepted.
+/// expiresAt }`, plus the pickup / drop addresses and the rider's `notes` since
+/// backend sprint 4. This is a notification only — the authoritative trip is
+/// fetched over REST once the offer is accepted.
 class TripOffer {
   const TripOffer({
     required this.offerId,
@@ -14,6 +15,8 @@ class TripOffer {
     required this.distanceMeters,
     required this.expiresAt,
     required this.receivedAt,
+    this.dropAddress,
+    this.notes,
   });
 
   /// Public id (`off_*`) used on accept / decline.
@@ -31,6 +34,12 @@ class TripOffer {
   /// When the client received the offer — the countdown's full duration.
   final DateTime receivedAt;
 
+  /// Where the rider is going, when the payload carries it.
+  final String? dropAddress;
+
+  /// The rider's note for the driver (≤500 chars), e.g. "Bring helmet".
+  final String? notes;
+
   /// Seconds left before the offer expires (never negative).
   int get secondsLeft {
     final left = expiresAt.difference(DateTime.now().toUtc()).inSeconds;
@@ -47,6 +56,10 @@ class TripOffer {
 
   /// Builds an offer from a loosely-typed socket payload, tolerating missing or
   /// oddly-typed fields rather than throwing inside the socket handler.
+  ///
+  /// Addresses are read from either shape the backend uses: nested like the
+  /// trip (`pickup.address`, `drop.address`) or flat like the ride request
+  /// (`pickupAddress`, `dropAddress`).
   static TripOffer? tryParse(Object? data) {
     if (data is! Map) return null;
     final offerId = data['offerId'];
@@ -58,6 +71,7 @@ class TripOffer {
     if (lat == null || lng == null) return null;
 
     final expires = DateTime.tryParse('${data['expiresAt']}')?.toUtc();
+    final dropRaw = data['drop'];
     return TripOffer(
       offerId: offerId,
       rideRequestId: '${data['rideRequestId'] ?? ''}',
@@ -65,8 +79,12 @@ class TripOffer {
       pickup: TripPlace(
         lat: lat,
         lng: lng,
-        address: pickupRaw['address'] as String?,
+        address: _text(pickupRaw['address']) ?? _text(data['pickupAddress']),
       ),
+      dropAddress:
+          _text(data['dropAddress']) ??
+          (dropRaw is Map ? _text(dropRaw['address']) : null),
+      notes: _text(data['notes']),
       distanceMeters: _toInt(data['distanceMeters']),
       // Default to a 15s window if the server omits/expires field is malformed.
       expiresAt:
@@ -74,6 +92,9 @@ class TripOffer {
       receivedAt: DateTime.now().toUtc(),
     );
   }
+
+  static String? _text(Object? v) =>
+      v is String && v.trim().isNotEmpty ? v.trim() : null;
 
   static double? _toDouble(Object? v) =>
       v is num ? v.toDouble() : double.tryParse('$v');

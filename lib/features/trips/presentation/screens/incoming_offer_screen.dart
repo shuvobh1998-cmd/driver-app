@@ -115,15 +115,49 @@ class _IncomingOfferScreenState extends ConsumerState<IncomingOfferScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
               Card(
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.trip_origin,
-                    color: AppColors.success,
-                  ),
-                  title: const Text('Pickup'),
-                  subtitle: Text(offer.pickup.display),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.trip_origin,
+                        color: AppColors.success,
+                      ),
+                      title: const Text('Pickup'),
+                      subtitle: Text(
+                        offer.pickup.display,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (offer.dropAddress != null)
+                      ListTile(
+                        leading: const Icon(
+                          Icons.location_on,
+                          color: AppColors.danger,
+                        ),
+                        title: const Text('Drop'),
+                        subtitle: Text(
+                          offer.dropAddress!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
                 ),
               ),
+              if (offer.notes != null)
+                Card(
+                  color: AppColors.warning.withValues(alpha: 0.12),
+                  child: ListTile(
+                    leading: const Icon(Icons.sticky_note_2_outlined),
+                    title: const Text('Note from rider'),
+                    subtitle: Text(
+                      offer.notes!,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
               const Spacer(),
               Row(
                 children: [

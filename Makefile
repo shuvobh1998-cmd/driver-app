@@ -1,6 +1,6 @@
 # Driver app — common dev tasks. Run `make help` for the list.
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap models l10n codegen watch analyze format test run-dev run-staging run-prod apk clean
+.PHONY: help bootstrap models l10n codegen watch analyze format test run-dev run-staging run-prod apk apk-release clean
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -45,6 +45,10 @@ run-prod: ## Run the prod flavor.
 
 apk: ## Build the dev debug APK.
 	flutter build apk --debug --flavor dev -t lib/main_dev.dart
+
+apk-release: ## Build the signed, obfuscated dev release APK (needs android/key.properties).
+	flutter build apk --release --flavor dev -t lib/main_dev.dart --dart-define=ENV=dev \
+		--obfuscate --split-debug-info=build/symbols/dev
 
 clean: ## Remove build + generated outputs.
 	flutter clean

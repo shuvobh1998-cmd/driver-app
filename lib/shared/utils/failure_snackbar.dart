@@ -22,13 +22,17 @@ String messageForError(Object error) {
   if (error is FileMissingException) {
     return 'That file is no longer on your device. Please capture it again.';
   }
-  final failure = error is AppFailure
-      ? error
-      : (error is DioException && error.error is AppFailure
-            ? error.error as AppFailure
-            : null);
-  return failure?.message ?? errorMessageFor(AppFailure.unknownCode);
+  return failureOf(error)?.message ?? errorMessageFor(AppFailure.unknownCode);
 }
+
+/// The [AppFailure] behind a caught error — either the failure itself or the
+/// one the [ErrorInterceptor] attached to a [DioException] — so UI can branch
+/// on its `code`.
+AppFailure? failureOf(Object error) => error is AppFailure
+    ? error
+    : (error is DioException && error.error is AppFailure
+          ? error.error as AppFailure
+          : null);
 
 extension FailureSnackBar on BuildContext {
   /// Shows a dismissible error snackbar for a caught failure.

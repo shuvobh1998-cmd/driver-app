@@ -49,6 +49,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     return active.isEmpty ? null : active.first.publicId;
   }
 
+  void _onTransitionError(Object error) {
+    context.showErrorSnack(error);
+    final fix = switch (failureOf(error)?.code) {
+      'KYC_INCOMPLETE' || 'KYC_REJECTED' => Routes.kycDocuments,
+      'VEHICLE_NOT_APPROVED' => Routes.vehicles,
+      _ => null,
+    };
+    if (fix != null) context.push(fix);
+  }
+
   Future<void> _toggle(DriverState current, List<Vehicle> active) async {
     final controller = ref.read(driverHomeControllerProvider.notifier);
     if (current.isOnline) {
@@ -61,6 +71,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       context.showInfoSnack(
         'Finish onboarding and get a vehicle approved first.',
       );
+      await context.push(Routes.onboarding);
       return;
     }
 
@@ -90,10 +101,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final transitioning = ref.watch(driverTransitioningProvider);
     final hasActiveTrip = ref.watch(hasActiveTripProvider);
 
-    // Surface go-online/offline failures (KYC_INCOMPLETE, VEHICLE_NOT_APPROVED…)
-    // as a snackbar without leaving the screen.
+    // Surface go-online/offline failures as a snackbar; the 403s that mean
+    // "you can't drive yet" also take the driver to the screen that fixes it.
     ref.listen(driverHomeControllerProvider, (_, next) {
-      if (next is AsyncError) context.showErrorSnack(next.error!);
+      if (next is AsyncError) _onTransitionError(next.error!);
     });
 
     final state = stateAsync.value;

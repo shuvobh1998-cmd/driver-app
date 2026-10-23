@@ -4,10 +4,11 @@ import '../../../core/network/api_envelope.dart';
 import '../../auth/data/models/auth_session.dart';
 import '../../auth/data/models/user_profile.dart';
 import 'models/account_deletion.dart';
+import 'models/data_export.dart';
 import 'models/user_preferences.dart';
 
 /// Transport over the authenticated `/users/me/*` endpoints (profile, avatar,
-/// preferences, sessions, account deletion).
+/// preferences, sessions, account deletion, data export).
 class UserApi {
   UserApi(this._dio);
 
@@ -64,5 +65,15 @@ class UserApi {
       data: const <String, dynamic>{},
     );
     return res.unwrap(AccountDeletion.fromJson);
+  }
+
+  /// Builds a JSON archive of everything the platform holds about the user
+  /// and returns a time-limited download link.
+  Future<DataExport> requestDataExport() async {
+    final res = await _dio.post<dynamic>(
+      '/users/me/account/data-export',
+      data: const <String, dynamic>{},
+    );
+    return res.unwrap(DataExport.fromJson);
   }
 }

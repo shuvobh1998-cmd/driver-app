@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../design_system/design_system.dart';
+import '../../../../shared/extensions/date_extensions.dart';
 import '../../../../shared/utils/failure_snackbar.dart';
 import '../../../auth/data/auth_providers.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../data/models/data_export.dart';
 import '../../data/user_providers.dart';
 import '../controllers/locale_controller.dart';
 
-/// The settings hub: profile, language, devices, session actions and the
-/// account-deletion request.
+/// The settings hub: profile, language, devices, session actions, the personal
+/// data export and the account-deletion request.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -125,6 +128,14 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _logoutOthers(context, ref),
           ),
           const Divider(height: 1),
+          const _SectionHeader('Your data'),
+          ListTile(
+            leading: const Icon(Icons.download),
+            title: const Text('Download my data'),
+            subtitle: const Text('A copy of everything we hold about you'),
+            onTap: () => _exportData(context, ref),
+          ),
+          const Divider(height: 1),
           const _SectionHeader('Danger zone'),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: AppColors.danger),
@@ -198,6 +209,64 @@ class SettingsScreen extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) context.showErrorSnack(e);
     }
+  }
+
+  Future<void> _exportData(BuildContext context, WidgetRef ref) async {
+    context.showInfoSnack('Preparing your data…');
+    final DataExport export;
+    try {
+      export = await ref.read(userApiProvider).requestDataExport();
+    } catch (e) {
+      if (context.mounted) context.showErrorSnack(e);
+      return;
+    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    final details = [
+      ?export.sizeLabel,
+      if (export.expiresAt != null)
+        'link valid until ${export.expiresAt!.toFriendly()}',
+    ].join(' · ');
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Your data is ready'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Open this link in a browser to download a JSON copy of your '
+              'data. We\'ve also sent it to your notifications.',
+            ),
+            if (details.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(details, style: Theme.of(ctx).textTheme.bodySmall),
+            ],
+            const SizedBox(height: AppSpacing.sm),
+            SelectableText(
+              export.url,
+              style: Theme.of(ctx).textTheme.bodySmall,
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: export.url));
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (context.mounted) context.showInfoSnack('Link copied.');
+            },
+            child: const Text('Copy link'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _requestDeletion(BuildContext context, WidgetRef ref) async {

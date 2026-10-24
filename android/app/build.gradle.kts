@@ -116,6 +116,22 @@ flutter {
     source = "../.."
 }
 
+// On AGP 9 the Flutter plugin's per-variant jniLibs folder
+// (build/intermediates/flutter/<variant>/jniLibs, where the compiled Dart
+// libapp.so lands) is merged but not tracked as an input of
+// merge<Variant>JniLibFolders. After the first build that task stays
+// UP-TO-DATE, so every later release APK ships the old Dart code. Declaring
+// the folder as an input makes the merge re-run when libapp.so changes.
+tasks.configureEach {
+    val variant = Regex("merge(\\w+)JniLibFolders").matchEntire(name)
+        ?.groupValues?.get(1)?.replaceFirstChar { it.lowercase() }
+        ?: return@configureEach
+    inputs.dir(layout.buildDirectory.dir("intermediates/flutter/$variant/jniLibs"))
+        .optional()
+        .withPropertyName("flutterJniLibs")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

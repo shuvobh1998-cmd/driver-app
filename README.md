@@ -53,6 +53,16 @@ make apk              # flutter build apk --debug --flavor dev -t lib/main_dev.d
 > iOS flavor schemes (Runner Dev/Staging/Prod) are set up in Xcode in D1; the
 > Android flavors are wired here.
 
+Build a demo APK that reports a fixed location instead of GPS, so a tester
+anywhere can go online in the city being demoed (riders match drivers within
+~5 km of pickup). Ignored in the prod flavor.
+
+```sh
+make apk-demo                                   # Connaught Place, New Delhi
+make apk-demo DEMO_LOCATION=19.0760,72.8777     # any lat,lng (here: Mumbai)
+# → build/app/outputs/flutter-apk/app-dev-demo.apk
+```
+
 ## Release build (store)
 
 Release signing reads `android/key.properties` (gitignored). Without it,

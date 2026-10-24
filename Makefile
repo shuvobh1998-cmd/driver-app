@@ -1,6 +1,9 @@
 # Driver app — common dev tasks. Run `make help` for the list.
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap models l10n codegen watch analyze format test run-dev run-staging run-prod apk apk-release clean
+.PHONY: help bootstrap models l10n codegen watch analyze format test run-dev run-staging run-prod apk apk-release apk-demo clean
+
+# Fixed point demo builds report instead of GPS (default: Connaught Place, New Delhi).
+DEMO_LOCATION ?= 28.6315,77.2167
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -49,6 +52,12 @@ apk: ## Build the dev debug APK.
 apk-release: ## Build the signed, obfuscated dev release APK (needs android/key.properties).
 	flutter build apk --release --flavor dev -t lib/main_dev.dart --dart-define=ENV=dev \
 		--obfuscate --split-debug-info=build/symbols/dev
+
+apk-demo: ## Build the dev release APK pinned to DEMO_LOCATION=lat,lng -> app-dev-demo.apk.
+	flutter build apk --release --flavor dev -t lib/main_dev.dart --dart-define=ENV=dev \
+		--dart-define=DEMO_LOCATION=$(DEMO_LOCATION) \
+		--obfuscate --split-debug-info=build/symbols/dev
+	cp build/app/outputs/flutter-apk/app-dev-release.apk build/app/outputs/flutter-apk/app-dev-demo.apk
 
 clean: ## Remove build + generated outputs.
 	flutter clean

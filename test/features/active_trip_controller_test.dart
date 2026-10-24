@@ -41,6 +41,8 @@ class _FakeLocation implements LiveLocationService {
   @override
   Stream<LocationSample> get fixes => _controller.stream;
   @override
+  ({double lat, double lng})? get demoLocation => null;
+  @override
   bool get isRunning => true;
   @override
   Future<bool> ensurePermission() async => true;

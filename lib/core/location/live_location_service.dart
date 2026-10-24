@@ -31,7 +31,12 @@ class LocationSample {
 /// [fixes] forwards every raw fix (~[fixInterval]) for the faster live
 /// `trip.location` stream the rider's map follows.
 class LiveLocationService {
-  LiveLocationService();
+  LiveLocationService({this.demoLocation});
+
+  /// Demo builds: every sample and fix reports this point instead of the GPS
+  /// position (see `AppConfig.demoLocation`). The position stream still runs
+  /// so its foreground service keeps pings flowing while backgrounded.
+  final ({double lat, double lng})? demoLocation;
 
   static const Duration pingInterval = Duration(seconds: 5);
 
@@ -84,13 +89,16 @@ class LiveLocationService {
 
     // Seed an immediate fix so the first ping doesn't wait a whole interval.
     // Bounded: with no GPS fix getCurrentPosition can wait forever, which would
-    // hang go-online (and the home screen's load) on the spinner.
-    try {
-      _last ??= await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(timeLimit: seedFixTimeout),
-      );
-    } catch (_) {
-      _last ??= await Geolocator.getLastKnownPosition();
+    // hang go-online (and the home screen's load) on the spinner. A demo point
+    // needs no seed: it is reported from the first tick.
+    if (demoLocation == null) {
+      try {
+        _last ??= await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(timeLimit: seedFixTimeout),
+        );
+      } catch (_) {
+        _last ??= await Geolocator.getLastKnownPosition();
+      }
     }
     _emit();
     _timer = Timer.periodic(pingInterval, (_) => _emit());
@@ -112,17 +120,28 @@ class LiveLocationService {
 
   void _emit() {
     final p = _last;
-    if (p == null) return;
+    if (p == null && demoLocation == null) return;
     _samples.add(_toSample(p));
   }
 
-  static LocationSample _toSample(Position p) => LocationSample(
-    lat: p.latitude,
-    lng: p.longitude,
-    speed: p.speed.isFinite ? p.speed : null,
-    bearing: p.heading.isFinite ? p.heading : null,
-    recordedAt: DateTime.now().toUtc(),
-  );
+  /// A sample from fix [p], or the [demoLocation] in its place (standing
+  /// still, so no speed or bearing).
+  LocationSample _toSample(Position? p) {
+    if (demoLocation case (:final lat, :final lng)) {
+      return LocationSample(
+        lat: lat,
+        lng: lng,
+        recordedAt: DateTime.now().toUtc(),
+      );
+    }
+    return LocationSample(
+      lat: p!.latitude,
+      lng: p.longitude,
+      speed: p.speed.isFinite ? p.speed : null,
+      bearing: p.heading.isFinite ? p.heading : null,
+      recordedAt: DateTime.now().toUtc(),
+    );
+  }
 
   LocationSettings _settings() {
     if (Platform.isAndroid) {

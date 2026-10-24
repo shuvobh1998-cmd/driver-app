@@ -58,8 +58,8 @@ anywhere can go online in the city being demoed (riders match drivers within
 ~5 km of pickup). Ignored in the prod flavor.
 
 ```sh
-make apk-demo                                   # Connaught Place, New Delhi
-make apk-demo DEMO_LOCATION=19.0760,72.8777     # any lat,lng (here: Mumbai)
+make apk-demo                                   # Kolkata centre (customer app pickup)
+make apk-demo DEMO_LOCATION=28.6315,77.2167     # any lat,lng (here: New Delhi)
 # → build/app/outputs/flutter-apk/app-dev-demo.apk
 ```
 

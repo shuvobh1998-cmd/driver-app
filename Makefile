@@ -2,8 +2,9 @@
 .DEFAULT_GOAL := help
 .PHONY: help bootstrap models l10n codegen watch analyze format test run-dev run-staging run-prod apk apk-release apk-demo clean
 
-# Fixed point demo builds report instead of GPS (default: Connaught Place, New Delhi).
-DEMO_LOCATION ?= 28.6315,77.2167
+# Fixed point demo builds report instead of GPS. Default: Kolkata centre, the
+# customer app's fixed pickup (riders only match drivers within ~5 km of it).
+DEMO_LOCATION ?= 22.5726,88.3639
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \

@@ -18,6 +18,9 @@ class _FakeLocation implements LiveLocationService {
   final _controller = StreamController<LocationSample>.broadcast();
   bool _running = false;
 
+  /// When set, [start] fails with it (e.g. permission revoked since last run).
+  Object? startError;
+
   @override
   Stream<LocationSample> get samples => _controller.stream;
 
@@ -31,7 +34,10 @@ class _FakeLocation implements LiveLocationService {
   Future<bool> ensurePermission() async => true;
 
   @override
-  Future<void> start() async => _running = true;
+  Future<void> start() async {
+    if (startError case final e?) throw e;
+    _running = true;
+  }
 
   @override
   Future<void> stop() async => _running = false;
@@ -189,4 +195,42 @@ void main() {
 
     expect(location.isRunning, isTrue);
   });
+
+  test(
+    'on relaunch, a location failure still loads the server state',
+    () async {
+      when(
+        () => api.getState(),
+      ).thenAnswer((_) async => _state(DriverStatus.online));
+      location.startError = Exception('location permission denied');
+
+      final c = makeContainer();
+      await c.read(driverHomeControllerProvider.future);
+
+      // The home screen needs a state to enable its button; without one it
+      // shows a fallback "Offline" and a dead Go Online.
+      expect(
+        c.read(driverHomeControllerProvider).value?.status,
+        DriverStatus.online,
+      );
+      expect(location.isRunning, isFalse);
+    },
+  );
+
+  test(
+    'a refused goOnline keeps the last state so the button stays live',
+    () async {
+      when(
+        () => api.goOnline(any()),
+      ).thenThrow(Exception('VEHICLE_NOT_APPROVED'));
+
+      final c = makeContainer();
+      await c.read(driverHomeControllerProvider.future);
+      await c.read(driverHomeControllerProvider.notifier).goOnline('veh_1');
+
+      final s = c.read(driverHomeControllerProvider);
+      expect(s.hasError, isTrue);
+      expect(s.value?.status, DriverStatus.offline);
+    },
+  );
 }

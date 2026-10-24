@@ -36,8 +36,12 @@ class DriverHomeController extends AsyncNotifier<DriverState> {
 
     final serverState = await _api.getState();
     // Survives a relaunch: if the server still has us online, resume streaming.
+    // A location failure (permission revoked, GPS off) must not fail the build:
+    // with no state the home screen falls back to "Offline" with a dead button.
+    // The driver still sees the server truth and can go offline / back online,
+    // which re-asks for permission.
     if (serverState.isOnline) {
-      await _startPump();
+      await _startPump().catchError((_) {});
     }
     return serverState;
   }

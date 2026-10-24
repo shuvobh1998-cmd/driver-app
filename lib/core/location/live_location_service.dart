@@ -38,6 +38,10 @@ class LiveLocationService {
   /// How often the OS is asked for a fresh fix.
   static const Duration fixInterval = Duration(seconds: 3);
 
+  /// How long [start] waits for its seed fix before falling back to the last
+  /// known position; the stream supplies fixes after that either way.
+  static const Duration seedFixTimeout = Duration(seconds: 10);
+
   final StreamController<LocationSample> _samples =
       StreamController<LocationSample>.broadcast();
   final StreamController<LocationSample> _fixes =
@@ -70,6 +74,8 @@ class LiveLocationService {
   /// Begins streaming. Idempotent: a second call while running is a no-op.
   Future<void> start() async {
     if (isRunning) return;
+    // Drop a stream left behind by an earlier start() that threw part-way.
+    await _positionSub?.cancel();
     _positionSub = Geolocator.getPositionStream(locationSettings: _settings())
         .listen((p) {
           _last = p;
@@ -77,8 +83,12 @@ class LiveLocationService {
         }, onError: (_) {});
 
     // Seed an immediate fix so the first ping doesn't wait a whole interval.
+    // Bounded: with no GPS fix getCurrentPosition can wait forever, which would
+    // hang go-online (and the home screen's load) on the spinner.
     try {
-      _last ??= await Geolocator.getCurrentPosition();
+      _last ??= await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(timeLimit: seedFixTimeout),
+      );
     } catch (_) {
       _last ??= await Geolocator.getLastKnownPosition();
     }
